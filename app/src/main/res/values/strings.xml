@@ -8,4 +8,5 @@
     <string name="password">Password</string>
     <string name="connect">Connect</string>
     <string name="title_activity_connect">ConnectActivity</string>
+    <string name="title_activity_credential">CredentialActivity</string>
 </resources>

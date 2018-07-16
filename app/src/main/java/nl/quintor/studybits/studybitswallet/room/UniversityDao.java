@@ -19,6 +19,12 @@ public interface UniversityDao {
     @Query("SELECT * FROM university")
     public LiveData<List<University>> get();
 
+    @Query("SELECT * FROM university")
+    public List<University> getStatic();
+
+    @Query("SELECT * FROM university WHERE theirDid = :did")
+    public University getByDid(String did);
+
     @Query("DELETE FROM university")
     public void delete();
 }

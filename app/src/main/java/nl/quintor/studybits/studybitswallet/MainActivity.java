@@ -8,12 +8,14 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.StrictMode;
 import android.security.NetworkSecurityPolicy;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageButton;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -41,18 +43,17 @@ import java.util.concurrent.ExecutionException;
 
 import nl.quintor.studybits.indy.wrapper.IndyPool;
 import nl.quintor.studybits.indy.wrapper.IndyWallet;
+import nl.quintor.studybits.indy.wrapper.Prover;
 import nl.quintor.studybits.indy.wrapper.message.MessageEnvelope;
 import nl.quintor.studybits.indy.wrapper.util.JSONUtil;
 import nl.quintor.studybits.indy.wrapper.util.PoolUtils;
+import nl.quintor.studybits.studybitswallet.credential.CredentialActivity;
 import nl.quintor.studybits.studybitswallet.room.AppDatabase;
-import nl.quintor.studybits.studybitswallet.room.university.UniversityActivity;
+import nl.quintor.studybits.studybitswallet.university.UniversityActivity;
 
 
 public class MainActivity extends AppCompatActivity {
     static String ENDPOINT_RUG = "http://10.31.200.120:8080";
-
-    public static final String STUDENT_DID = "Xepuw1Y1k9DpvoSvZaoVJr";
-
 
     static {
         Log.d("STUDYBITS", "Attempting to load indy");
@@ -75,33 +76,6 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
-    private IndyWallet studentWallet;
-    private IndyPool indyPool;
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        try {
-            indyPool = new IndyPool("testPool");
-            studentWallet = IndyWallet.open(indyPool, "student_wallet", STUDENT_DID);
-        } catch (IndyException | ExecutionException | InterruptedException | JsonProcessingException e) {
-            Log.e("STUDYBITS", "Exception on resume " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        try {
-            studentWallet.close();
-            indyPool.close();
-        } catch (Exception e) {
-            Log.e("STUDYBITS", "Exception on pause" + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,47 +85,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         final MainActivity activity = this;
-        try {
-            int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
-            if (permission != PackageManager.PERMISSION_GRANTED) {
-                // We don't have permission so prompt the user
-                ActivityCompat.requestPermissions(
-                        activity,
-                        PERMISSIONS_STORAGE,
-                        REQUEST_EXTERNAL_STORAGE
-                );
-            }
-
-            File indyClientDir = new File(Environment.getExternalStorageDirectory().getPath() + "/.indy_client/");
-
-            for (File file : FileUtils.listFilesAndDirs(indyClientDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
-                Log.d("STUDYBITS", "File " + file);
-            }
-
-            FileUtils.deleteDirectory(indyClientDir);
-
-            for (String abi : Build.SUPPORTED_ABIS) {
-                Log.d("STUDYBITS", "Supported ABI: " + abi);
-            }
-
-            Log.d("STUDYBITS", "Loading other indy");
-            LibIndy.API api = (LibIndy.API) Native.loadLibrary("indy", LibIndy.API.class);
-            Log.d("STUDYBITS", "Indy api object: " + api);
-            String poolName = PoolUtils.createPoolLedgerConfig("10.31.200.120", "testPool");
-
-            IndyPool indyPool = new IndyPool(poolName);
-            IndyWallet tempWallet = IndyWallet.create(indyPool, "student_wallet", "000000000000000000000000Student1");
-            tempWallet.close();
-            Log.d("STUDYBITS", "Closing tempWallet");
-            indyPool.close();
-
-            AppDatabase.getInstance(this).universityDao().delete();
-        }
-        catch (Exception e) {
-            Log.e("STUDYBITS", "Exception during creation" + e.getMessage());
-            e.printStackTrace();
-        }
 
 
         ImageButton universityButton = (ImageButton) findViewById(R.id.button_university);
@@ -159,6 +93,61 @@ public class MainActivity extends AppCompatActivity {
         universityButton.setOnClickListener((view) -> {
             Intent intent = new Intent(this, UniversityActivity.class);
             startActivity(intent);
+        });
+
+        ImageButton credentialButton = (ImageButton) findViewById(R.id.button_credential);
+
+        credentialButton.setOnClickListener((view) -> {
+            Intent intent = new Intent(this, CredentialActivity.class);
+            startActivity(intent);
+        });
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(view -> {
+            try {
+                int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+                if (permission != PackageManager.PERMISSION_GRANTED) {
+                    // We don't have permission so prompt the user
+                    ActivityCompat.requestPermissions(
+                            activity,
+                            PERMISSIONS_STORAGE,
+                            REQUEST_EXTERNAL_STORAGE
+                    );
+                }
+
+                File indyClientDir = new File(Environment.getExternalStorageDirectory().getPath() + "/.indy_client/");
+
+                for (File file : FileUtils.listFilesAndDirs(indyClientDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
+                    Log.d("STUDYBITS", "File " + file);
+                }
+
+                FileUtils.deleteDirectory(indyClientDir);
+
+                for (String abi : Build.SUPPORTED_ABIS) {
+                    Log.d("STUDYBITS", "Supported ABI: " + abi);
+                }
+
+                Log.d("STUDYBITS", "Loading other indy");
+                LibIndy.API api = (LibIndy.API) Native.loadLibrary("indy", LibIndy.API.class);
+                Log.d("STUDYBITS", "Indy api object: " + api);
+                String poolName = PoolUtils.createPoolLedgerConfig("192.168.1.86", "testPool");
+
+                IndyPool indyPool = new IndyPool(poolName);
+                IndyWallet tempWallet = IndyWallet.create(indyPool, "student_wallet", "000000000000000000000000Student1");
+
+                Prover prover = new Prover(tempWallet, WalletActivity.STUDENT_SECRET_NAME);
+                prover.init();
+                tempWallet.close();
+                Log.d("STUDYBITS", "Closing tempWallet");
+                indyPool.close();
+
+                AppDatabase.getInstance(this).universityDao().delete();
+                AppDatabase.getInstance(this).credentialDao().deleteAll();
+            } catch (Exception e) {
+                Log.e("STUDYBITS", "Exception during creation" + e.getMessage());
+                e.printStackTrace();
+            }
         });
 
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);

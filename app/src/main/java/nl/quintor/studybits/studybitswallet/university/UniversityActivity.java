@@ -1,4 +1,4 @@
-package nl.quintor.studybits.studybitswallet.room.university;
+package nl.quintor.studybits.studybitswallet.university;
 
 import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
@@ -29,44 +29,18 @@ import nl.quintor.studybits.indy.wrapper.util.AsyncUtil;
 import nl.quintor.studybits.studybitswallet.AgentClient;
 import nl.quintor.studybits.studybitswallet.MainActivity;
 import nl.quintor.studybits.studybitswallet.R;
+import nl.quintor.studybits.studybitswallet.WalletActivity;
 import nl.quintor.studybits.studybitswallet.room.AppDatabase;
 import nl.quintor.studybits.studybitswallet.room.entity.University;
 
-public class UniversityActivity extends AppCompatActivity {
+public class UniversityActivity extends WalletActivity {
     ArrayList<String> universities = new ArrayList<>();
     public static final String EXTRA_CONNECTION_REQUEST = "nl.quintor.studybits.indy.wrapper.dto.ConnectionRequest";
-
-    private IndyWallet studentWallet;
-    private IndyPool indyPool;
 
     private RecyclerView universityRecyclerView;
     private UniversityRecyclerViewAdapter universityAdapter;
     private RecyclerView.LayoutManager universityLayoutManager;
     private UniversityListViewModel universityListViewModel;
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        try {
-            indyPool = new IndyPool("testPool");
-            studentWallet = IndyWallet.open(indyPool, "student_wallet", MainActivity.STUDENT_DID);
-        } catch (IndyException | ExecutionException | InterruptedException | JsonProcessingException e) {
-            Log.e("STUDYBITS", "Exception on resume" + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        try {
-            studentWallet.close();
-            indyPool.close();
-        } catch (Exception e) {
-            Log.e("STUDYBITS", "Exception on pause" + e.getMessage());
-            e.printStackTrace();
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

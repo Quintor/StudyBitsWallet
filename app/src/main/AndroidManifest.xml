@@ -25,8 +25,17 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".room.university.UniversityActivity"
+            android:name=".university.UniversityActivity"
             android:label="@string/title_activity_university"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="nl.quintor.studybits.studybitswallet.MainActivity" />
+        </activity>
+        <activity
+            android:name=".credential.CredentialActivity"
+            android:label="@string/title_activity_credential"
             android:parentActivityName=".MainActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data

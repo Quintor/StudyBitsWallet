@@ -1,4 +1,4 @@
-package nl.quintor.studybits.studybitswallet.room.university;
+package nl.quintor.studybits.studybitswallet.university;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;

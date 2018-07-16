@@ -7,7 +7,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/university_endpoint"
-        android:text="http://10.31.200.120:8080"/>
+        android:text="http://192.168.1.86:8080"/>
 
     <EditText
         android:id="@+id/student_id_text"

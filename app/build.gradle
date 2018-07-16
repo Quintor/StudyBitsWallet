@@ -51,6 +51,7 @@ dependencies {
     def room_version = "1.1.1"
 
     implementation "android.arch.persistence.room:runtime:$room_version"
+    implementation 'com.android.support:support-v4:28.0.0-alpha3'
     annotationProcessor "android.arch.persistence.room:compiler:$room_version"
 
     implementation 'commons-io:commons-io:2.5'

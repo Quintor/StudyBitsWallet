@@ -1,4 +1,4 @@
-package nl.quintor.studybits.studybitswallet.room.university;
+package nl.quintor.studybits.studybitswallet.university;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
