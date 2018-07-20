@@ -70,7 +70,7 @@ public class UniversityActivity extends WalletActivity {
                             new TextNode(new String(Base64.encode(anoncryptedConnectionResponse.getMessage(), Base64.NO_WRAP), Charset.forName("utf8"))));
                         MessageEnvelope connectionAcknowledgementEnvelope = AgentClient.postAndReturnMessage(endpoint, connectionResponseEnvelope);
 
-                        String uniName = connectionAcknowledgementEnvelope.getMessage().toString();
+                        String uniName = connectionAcknowledgementEnvelope.getMessage().asText();
 
                         University university = new University(uniName, endpoint, connectionRequest.getDid());
 

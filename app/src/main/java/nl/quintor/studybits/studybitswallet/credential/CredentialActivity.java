@@ -28,7 +28,5 @@ public class CredentialActivity extends AppCompatActivity  implements Credential
 
     @Override
     public void onListFragmentInteraction(CredentialOrOffer credentialOrOffer) {
-
-
     }
 }

@@ -19,7 +19,7 @@ import nl.quintor.studybits.studybitswallet.credential.CredentialFragment.OnList
  */
 public class CredentialRecyclerViewAdapter extends RecyclerView.Adapter<CredentialRecyclerViewAdapter.ViewHolder> {
 
-    private final List<CredentialOrOffer> credentials;
+    private List<CredentialOrOffer> credentials;
     private final OnListFragmentInteractionListener credentialInteractionListener;
 
     public CredentialRecyclerViewAdapter(List<CredentialOrOffer> items, OnListFragmentInteractionListener listener) {
@@ -52,9 +52,15 @@ public class CredentialRecyclerViewAdapter extends RecyclerView.Adapter<Credenti
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
                     credentialInteractionListener.onListFragmentInteraction(holder.credentialOffer);
+
                 }
             }
         });
+    }
+
+    public void setDataset(List<CredentialOrOffer> credentialOrOffers) {
+        this.credentials = credentialOrOffers;
+        notifyDataSetChanged();
     }
 
     @Override

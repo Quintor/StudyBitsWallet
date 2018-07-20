@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("STUDYBITS", "Loading other indy");
                 LibIndy.API api = (LibIndy.API) Native.loadLibrary("indy", LibIndy.API.class);
                 Log.d("STUDYBITS", "Indy api object: " + api);
-                String poolName = PoolUtils.createPoolLedgerConfig("192.168.1.86", "testPool");
+                String poolName = PoolUtils.createPoolLedgerConfig("10.31.200.120", "testPool");
 
                 IndyPool indyPool = new IndyPool(poolName);
                 IndyWallet tempWallet = IndyWallet.create(indyPool, "student_wallet", "000000000000000000000000Student1");

@@ -1,7 +1,7 @@
 package nl.quintor.studybits.studybitswallet.credential;
 
-import nl.quintor.studybits.indy.wrapper.dto.Credential;
 import nl.quintor.studybits.indy.wrapper.dto.CredentialOffer;
+import nl.quintor.studybits.studybitswallet.room.entity.Credential;
 
 public class CredentialOrOffer {
     private String universityName;
@@ -21,7 +21,7 @@ public class CredentialOrOffer {
     }
 
     public static CredentialOrOffer fromCredential(String universityName, Credential credential) {
-        return new CredentialOrOffer(universityName, credential.getValues().toString(), null, credential);
+        return new CredentialOrOffer(universityName, credential.getValues(), null, credential);
     }
 
     public String getUniversityName() {

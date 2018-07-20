@@ -19,8 +19,11 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import org.hyperledger.indy.sdk.IndyException;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import nl.quintor.studybits.indy.wrapper.IndyPool;
 import nl.quintor.studybits.indy.wrapper.IndyWallet;
@@ -135,14 +138,41 @@ public class CredentialFragment extends Fragment {
 
             credentialOfferViewModel.initCredentialOffers(endpoints, studentWallet);
 
+            credentialOfferViewModel.getCredentials().observe(this, credentials -> {
+                List<CredentialOrOffer> credentialOrOffers = credentials.stream()
+                        .map(credential -> {
+                            University university = AppDatabase.getInstance(context).universityDao().getByDid(credential.getIssuerDid());
+                            return CredentialOrOffer.fromCredential(university.getName(), credential);
+                        }).collect(Collectors.toList());
+
+                if (credentialOfferViewModel.getCredentialOffers().getValue() != null) {
+                    credentialOrOffers.addAll(credentialOfferViewModel.getCredentialOffers().getValue());
+                }
+
+                ((CredentialRecyclerViewAdapter) recyclerView.getAdapter()).setDataset(credentialOrOffers);
+            });
+
             credentialOfferViewModel.getCredentialOffers().observe(this, credentialOffers ->
             {
+                List<CredentialOrOffer> credentialOrOffers = new ArrayList<>(credentialOffers);
+                if (credentialOfferViewModel.getCredentials().getValue() != null) {
+                    List<CredentialOrOffer> credentials = credentialOfferViewModel.getCredentials().getValue().stream()
+                            .map(credential -> {
+                                University university = AppDatabase.getInstance(context).universityDao().getByDid(credential.getIssuerDid());
+                                return CredentialOrOffer.fromCredential(university.getName(), credential);
+                            }).collect(Collectors.toList());
+                    credentialOrOffers.addAll(credentials);
+                }
+
                 Log.d("STUDYBITS", "Setting credential offers adapter");
-                recyclerView.setAdapter(new CredentialRecyclerViewAdapter(credentialOffers, credentialOrOffer -> {
+                recyclerView.setAdapter(new CredentialRecyclerViewAdapter(credentialOrOffers, credentialOrOffer -> {
                     if (credentialOrOffer.getCredentialOffer() != null) {
                         acceptCredentialOffer(credentialOrOffer.getCredentialOffer());
+
                     }
                     mListener.onListFragmentInteraction(credentialOrOffer);
+
+                    credentialOfferViewModel.initCredentialOffers(endpoints, studentWallet);
                 }));
             });
 
@@ -153,6 +183,8 @@ public class CredentialFragment extends Fragment {
 
     public void acceptCredentialOffer(CredentialOffer credentialOffer) {
         try {
+            Log.d("STUDYBITS", "Accepting credential offer");
+
             initWallet();
 
             Prover studentProver = new Prover(studentWallet, WalletActivity.STUDENT_SECRET_NAME);
@@ -162,7 +194,7 @@ public class CredentialFragment extends Fragment {
             MessageEnvelope credentialRequestEnvelope = new MessageEnvelope(authcryptedCredentialRequest.getDid(), MessageEnvelope.MessageType.CREDENTIAL_REQUEST,
                     new TextNode(new String(Base64.encode(authcryptedCredentialRequest.getMessage(), Base64.NO_WRAP), Charset.forName("utf8"))));
 
-            University university = AppDatabase.getInstance(getContext()).universityDao().getByDid(authcryptedCredentialRequest.getDid());
+            University university = AppDatabase.getInstance(getContext()).universityDao().getByDid(credentialOffer.getTheirDid());
 
             MessageEnvelope credentialEnvelope = AgentClient.postAndReturnMessage(university.getEndpoint(), credentialRequestEnvelope);
 
@@ -172,6 +204,7 @@ public class CredentialFragment extends Fragment {
 
             AppDatabase.getInstance(getContext()).credentialDao().insert(
                     new nl.quintor.studybits.studybitswallet.room.entity.Credential(credential.getCredDefId(), university.getTheirDid(), credential.getValues().toString()));
+            Log.d("STUDYBITS", "Accepted credential offer");
         }
         catch (Exception e) {
             Log.e("STUDYBITS", "Exception when accepting credential offer" + e.getMessage());

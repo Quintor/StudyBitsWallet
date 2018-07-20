@@ -1,8 +1,11 @@
 package nl.quintor.studybits.studybitswallet.credential;
 
+import android.app.Application;
+import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.ViewModel;
+import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
 
@@ -21,10 +24,18 @@ import nl.quintor.studybits.indy.wrapper.dto.CredentialOffer;
 import nl.quintor.studybits.indy.wrapper.message.MessageEnvelope;
 import nl.quintor.studybits.indy.wrapper.util.AsyncUtil;
 import nl.quintor.studybits.indy.wrapper.util.JSONUtil;
+import nl.quintor.studybits.studybitswallet.room.AppDatabase;
+import nl.quintor.studybits.studybitswallet.room.entity.Credential;
 import nl.quintor.studybits.studybitswallet.room.entity.University;
 
-public class CredentialOfferViewModel extends ViewModel {
+public class CredentialOfferViewModel extends AndroidViewModel {
     private final MutableLiveData<List<CredentialOrOffer>> credentialOffers = new MutableLiveData<>();
+    private final LiveData<List<Credential>> credentials;
+
+    public CredentialOfferViewModel(@NonNull Application application) {
+        super(application);
+        credentials = AppDatabase.getInstance(this.getApplication()).credentialDao().get();
+    }
 
     public void initCredentialOffers(List<University> universities, IndyWallet indyWallet) {
         Log.d("STUDYBITS", "Initializing credential offers");
@@ -60,5 +71,9 @@ public class CredentialOfferViewModel extends ViewModel {
 
     public LiveData<List<CredentialOrOffer>> getCredentialOffers() {
         return credentialOffers;
+    }
+
+    public LiveData<List<Credential>> getCredentials() {
+        return credentials;
     }
 }
