@@ -144,8 +144,18 @@ public class MainActivity extends AppCompatActivity {
 
                 AppDatabase.getInstance(this).universityDao().delete();
                 AppDatabase.getInstance(this).credentialDao().deleteAll();
+
+                URL url = new URL(ENDPOINT_RUG + "/bootstrap/reset");
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestProperty("Accept", "application/json");
+                urlConnection.setRequestProperty("Content-Type", "application/json");
+                urlConnection.setRequestMethod("POST");
+                urlConnection.setDoOutput(false);
+                urlConnection.setDoInput(true);
+
+                Log.d("STUDYBITS", "Response code: " + urlConnection.getResponseCode());
             } catch (Exception e) {
-                Log.e("STUDYBITS", "Exception during creation" + e.getMessage());
+                Log.e("STUDYBITS", "Exception during reset" + e.getMessage());
                 e.printStackTrace();
             }
         });

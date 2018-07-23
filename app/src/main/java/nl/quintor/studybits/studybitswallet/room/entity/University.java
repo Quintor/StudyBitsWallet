@@ -44,4 +44,13 @@ public class University {
     public void setTheirDid(String theirDid) {
         this.theirDid = theirDid;
     }
+
+    @Override
+    public String toString() {
+        return "University{" +
+                "name='" + name + '\'' +
+                ", endpoint='" + endpoint + '\'' +
+                ", theirDid='" + theirDid + '\'' +
+                '}';
+    }
 }

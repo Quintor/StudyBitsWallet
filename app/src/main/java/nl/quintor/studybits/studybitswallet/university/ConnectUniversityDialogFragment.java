@@ -28,18 +28,16 @@ public class ConnectUniversityDialogFragment extends DialogFragment {
                              Bundle savedInstanceState) {
         // Inflate the layout to use as dialog or embedded fragment
         View view = inflater.inflate(R.layout.dialog_connect_university, container, false);
-        endpointEditText = view.findViewById(R.id.university_endpoint_text);
-        usernameEditText = view.findViewById(R.id.student_id_text);
         return view;
     }
 
 
-    public EditText getUsername() {
-        return usernameEditText;
+    public String getUsernameText() {
+        return usernameEditText.getText().toString();
     }
 
-    public EditText getEndpoint() {
-        return endpointEditText;
+    public String getEndpointText() {
+        return endpointEditText.getText().toString();
     }
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -49,13 +47,17 @@ public class ConnectUniversityDialogFragment extends DialogFragment {
 
         // Inflate and set the layout for the dialog
         // Pass null as the parent view because its going in the dialog layout
-        builder.setView(inflater.inflate(R.layout.dialog_connect_university, null))
+
+        View view = inflater.inflate(R.layout.dialog_connect_university, null);
+        builder.setView(view)
                 // Add action buttons
                 .setPositiveButton(R.string.connect, (dialog, id) -> {
                     // sign in the user ...
                     connectDialogListener.onConnectDialogClick();
                     dismiss();
                 });
+        endpointEditText = view.findViewById(R.id.university_endpoint_text);
+        usernameEditText = view.findViewById(R.id.student_id_text);
         return builder.create();
     }
 

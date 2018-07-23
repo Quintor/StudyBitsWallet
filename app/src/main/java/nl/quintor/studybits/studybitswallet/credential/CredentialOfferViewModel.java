@@ -42,6 +42,7 @@ public class CredentialOfferViewModel extends AndroidViewModel {
         try {
             List<CredentialOrOffer> credentialOrOffers = new ArrayList<>();
             for (University university : universities) {
+                Log.d("STUDYBITS", "Initializing credential offers for university " + university);
                 URL url = new URL(university.getEndpoint() + "/agent/credential_offer");
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestProperty("Accept", "application/json");
@@ -49,6 +50,8 @@ public class CredentialOfferViewModel extends AndroidViewModel {
 
                 List<MessageEnvelope> offersForUni =
                         JSONUtil.mapper.readValue(new BufferedInputStream(urlConnection.getInputStream()), new TypeReference<List<MessageEnvelope>>() {});
+
+                Log.d("STUDYBITS", "Got " + offersForUni.size() + " message envelopes with offers");
 
                 List<CredentialOrOffer> credentialOrOffersForUni = offersForUni.stream()
                         .map(envelope -> new AuthcryptedMessage(Base64.decode(envelope.getMessage().asText(), Base64.NO_WRAP), envelope.getId()))

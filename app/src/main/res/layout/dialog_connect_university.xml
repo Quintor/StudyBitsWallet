@@ -6,15 +6,13 @@
         android:id="@+id/university_endpoint_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/university_endpoint"
-        android:text="http://10.31.200.120:8080"/>
+        android:hint="@string/university_endpoint"/>
 
     <EditText
         android:id="@+id/student_id_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/student_id"
-        android:text="12345678"/>
+        android:hint="@string/student_id"/>
 
     <EditText
         android:id="@+id/password_text"

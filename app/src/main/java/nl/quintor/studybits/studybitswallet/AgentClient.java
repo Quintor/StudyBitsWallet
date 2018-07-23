@@ -17,7 +17,13 @@ public class AgentClient {
     public static ConnectionRequest login(String endpoint, String username) {
         try {
             Log.d("STUDYBITS", "Logging in");
-            URL url = new URL(endpoint + "/agent/login/" + username);
+            URL url;
+            if (username == null || "".equals(username)) {
+                url = new URL(endpoint + "/agent/login");
+            }
+            else {
+                url = new URL(endpoint + "/agent/login?student_id=" + username);
+            }
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestProperty("Accept", "application/json");
             urlConnection.setRequestProperty("Content-Type", "application/json");

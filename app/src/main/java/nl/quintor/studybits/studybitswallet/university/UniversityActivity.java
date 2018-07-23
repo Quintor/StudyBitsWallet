@@ -59,8 +59,9 @@ public class UniversityActivity extends WalletActivity {
                 ConnectUniversityDialogFragment dialogFragment = new ConnectUniversityDialogFragment();
 
                 dialogFragment.setConnectDialogListener(() -> {
-                    String endpoint = dialogFragment.getEndpoint().getText().toString();
-                    String username = dialogFragment.getUsername().getText().toString();
+                    String endpoint = dialogFragment.getEndpointText();
+                    String username = dialogFragment.getUsernameText();
+                    Log.d("STUDYBITS", "Logging in with endpoint " + endpoint + " and username " + username);
                     ConnectionRequest connectionRequest = AgentClient.login(endpoint, username);
                     try {
                         AnoncryptedMessage anoncryptedConnectionResponse = studentWallet.acceptConnectionRequest(connectionRequest)
