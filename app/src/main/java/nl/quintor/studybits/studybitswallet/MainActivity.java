@@ -9,6 +9,7 @@ import android.os.Environment;
 import android.os.StrictMode;
 import android.security.NetworkSecurityPolicy;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -48,6 +49,7 @@ import nl.quintor.studybits.indy.wrapper.message.MessageEnvelope;
 import nl.quintor.studybits.indy.wrapper.util.JSONUtil;
 import nl.quintor.studybits.indy.wrapper.util.PoolUtils;
 import nl.quintor.studybits.studybitswallet.credential.CredentialActivity;
+import nl.quintor.studybits.studybitswallet.exchangeposition.ExchangePositionActivity;
 import nl.quintor.studybits.studybitswallet.room.AppDatabase;
 import nl.quintor.studybits.studybitswallet.university.UniversityActivity;
 
@@ -99,6 +101,13 @@ public class MainActivity extends AppCompatActivity {
 
         credentialButton.setOnClickListener((view) -> {
             Intent intent = new Intent(this, CredentialActivity.class);
+            startActivity(intent);
+        });
+
+        ImageButton exchangePositionButton = (ImageButton) findViewById(R.id.button_exchange_position);
+
+        exchangePositionButton.setOnClickListener((view) -> {
+            Intent intent = new Intent(this, ExchangePositionActivity.class);
             startActivity(intent);
         });
 
@@ -154,6 +163,7 @@ public class MainActivity extends AppCompatActivity {
                 urlConnection.setDoInput(true);
 
                 Log.d("STUDYBITS", "Response code: " + urlConnection.getResponseCode());
+                Snackbar.make(view, "Successfully reset", Snackbar.LENGTH_SHORT).show();
             } catch (Exception e) {
                 Log.e("STUDYBITS", "Exception during reset" + e.getMessage());
                 e.printStackTrace();

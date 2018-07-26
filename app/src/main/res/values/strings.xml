@@ -9,4 +9,5 @@
     <string name="connect">Connect</string>
     <string name="title_activity_connect">ConnectActivity</string>
     <string name="title_activity_credential">CredentialActivity</string>
+    <string name="title_activity_exchange_position">ExchangePositionActivity</string>
 </resources>

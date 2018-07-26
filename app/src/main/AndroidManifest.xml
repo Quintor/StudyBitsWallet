@@ -42,6 +42,15 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="nl.quintor.studybits.studybitswallet.MainActivity" />
         </activity>
+        <activity
+            android:name=".exchangeposition.ExchangePositionActivity"
+            android:label="@string/title_activity_exchange_position"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="nl.quintor.studybits.studybitswallet.MainActivity" />
+        </activity>
     </application>
 
 </manifest>
