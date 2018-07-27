@@ -200,7 +200,11 @@ public class CredentialFragment extends Fragment {
 
             AuthcryptedMessage authcryptedCredential = new AuthcryptedMessage(Base64.decode(credentialEnvelope.getMessage().asText(), Base64.NO_WRAP), credentialEnvelope.getId());
 
-            Credential credential = studentProver.authDecrypt(authcryptedCredential, CredentialWithRequest.class).get().getCredential();
+            CredentialWithRequest credentialWithRequest = studentProver.authDecrypt(authcryptedCredential, CredentialWithRequest.class).get();
+
+            studentProver.storeCredential(credentialWithRequest).get();
+
+            Credential credential = credentialWithRequest.getCredential();
 
             AppDatabase.getInstance(getContext()).credentialDao().insert(
                     new nl.quintor.studybits.studybitswallet.room.entity.Credential(credential.getCredDefId(), university.getTheirDid(), credential.getValues().toString()));

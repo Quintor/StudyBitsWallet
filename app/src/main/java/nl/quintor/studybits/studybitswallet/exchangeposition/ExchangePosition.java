@@ -1,21 +1,23 @@
 package nl.quintor.studybits.studybitswallet.exchangeposition;
 
-import nl.quintor.studybits.indy.wrapper.dto.ProofRequest;
+import nl.quintor.studybits.indy.wrapper.dto.AuthcryptedMessage;
 import nl.quintor.studybits.studybitswallet.room.entity.University;
 
 public class ExchangePosition {
     private String name;
-    private ProofRequest proofRequest;
+    private AuthcryptedMessage authcryptedProofRequest;
+    private boolean fulfilled;
     private University university;
 
     public ExchangePosition() {
-        
+
     }
 
-    public ExchangePosition(String name, ProofRequest proofRequest, University university) {
+    public ExchangePosition(String name, AuthcryptedMessage authcryptedProofRequest, University university, boolean fulfilled) {
         this.name = name;
-        this.proofRequest = proofRequest;
+        this.authcryptedProofRequest = authcryptedProofRequest;
         this.university = university;
+        this.fulfilled = fulfilled;
     }
 
     public String getName() {
@@ -26,12 +28,12 @@ public class ExchangePosition {
         this.name = name;
     }
 
-    public ProofRequest getProofRequest() {
-        return proofRequest;
+    public AuthcryptedMessage getAuthcryptedProofRequest() {
+        return authcryptedProofRequest;
     }
 
-    public void setProofRequest(ProofRequest proofRequest) {
-        this.proofRequest = proofRequest;
+    public void setAuthcryptedProofRequest(AuthcryptedMessage authcryptedProofRequest) {
+        this.authcryptedProofRequest = authcryptedProofRequest;
     }
 
     public University getUniversity() {
@@ -40,5 +42,13 @@ public class ExchangePosition {
 
     public void setUniversity(University university) {
         this.university = university;
+    }
+
+    public boolean isFulfilled() {
+        return fulfilled;
+    }
+
+    public void setFulfilled(boolean fulfilled) {
+        this.fulfilled = fulfilled;
     }
 }

@@ -1,5 +1,6 @@
 package nl.quintor.studybits.studybitswallet.exchangeposition;
 
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,6 +38,9 @@ public class MyExchangePositionRecyclerViewAdapter extends RecyclerView.Adapter<
         holder.mItem = mValues.get(position);
         holder.mIdView.setText(mValues.get(position).getUniversity().getName());
         holder.mContentView.setText(mValues.get(position).getName());
+        if (!holder.mItem.isFulfilled()) {
+            holder.mView.setBackgroundColor(ContextCompat.getColor(holder.mView.getContext(), R.color.colorCredentialOffer));
+        }
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override

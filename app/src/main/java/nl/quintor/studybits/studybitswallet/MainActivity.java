@@ -56,6 +56,7 @@ import nl.quintor.studybits.studybitswallet.university.UniversityActivity;
 
 public class MainActivity extends AppCompatActivity {
     static String ENDPOINT_RUG = "http://10.31.200.120:8080";
+    static String ENDPOINT_GENT = "http://10.31.200.120:8081";
 
     static {
         Log.d("STUDYBITS", "Attempting to load indy");
@@ -156,6 +157,16 @@ public class MainActivity extends AppCompatActivity {
 
                 URL url = new URL(ENDPOINT_RUG + "/bootstrap/reset");
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestProperty("Accept", "application/json");
+                urlConnection.setRequestProperty("Content-Type", "application/json");
+                urlConnection.setRequestMethod("POST");
+                urlConnection.setDoOutput(false);
+                urlConnection.setDoInput(true);
+
+                Log.d("STUDYBITS", "Response code: " + urlConnection.getResponseCode());
+
+                url = new URL(ENDPOINT_GENT + "/bootstrap/reset");
+                urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestProperty("Accept", "application/json");
                 urlConnection.setRequestProperty("Content-Type", "application/json");
                 urlConnection.setRequestMethod("POST");

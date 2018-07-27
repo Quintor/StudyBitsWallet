@@ -7,15 +7,38 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.List;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.node.TextNode;
 
+import org.hyperledger.indy.sdk.IndyException;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
+import nl.quintor.studybits.indy.wrapper.IndyPool;
+import nl.quintor.studybits.indy.wrapper.IndyWallet;
+import nl.quintor.studybits.indy.wrapper.Prover;
+import nl.quintor.studybits.indy.wrapper.dto.AuthcryptedMessage;
+import nl.quintor.studybits.indy.wrapper.dto.ProofRequest;
+import nl.quintor.studybits.indy.wrapper.message.MessageEnvelope;
+import nl.quintor.studybits.indy.wrapper.util.AsyncUtil;
+import nl.quintor.studybits.studybitswallet.AgentClient;
 import nl.quintor.studybits.studybitswallet.R;
+import nl.quintor.studybits.studybitswallet.WalletActivity;
 import nl.quintor.studybits.studybitswallet.room.AppDatabase;
 import nl.quintor.studybits.studybitswallet.room.entity.University;
+
+import static nl.quintor.studybits.studybitswallet.WalletActivity.STUDENT_DID;
 
 /**
  * A fragment representing a list of Items.
@@ -28,6 +51,39 @@ public class ExchangePositionFragment extends Fragment {
     private static final String ARG_COLUMN_COUNT = "column-count";
     private int mColumnCount = 1;
     private OnListFragmentInteractionListener mListener;
+
+    protected IndyPool indyPool;
+    protected IndyWallet studentWallet;
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        initWallet();
+    }
+
+    private void initWallet() {
+        try {
+            if (indyPool == null || studentWallet == null) {
+                indyPool = new IndyPool("testPool");
+                studentWallet = IndyWallet.open(indyPool, "student_wallet", STUDENT_DID);
+            }
+        } catch (IndyException | ExecutionException | InterruptedException | JsonProcessingException e) {
+            Log.e("STUDYBITS", "Exception on resume " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        try {
+            studentWallet.close();
+            indyPool.close();
+        } catch (Exception e) {
+            Log.e("STUDYBITS", "Exception on pause" + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -78,11 +134,43 @@ public class ExchangePositionFragment extends Fragment {
             exchangePositionViewModel.init(universityList);
 
             exchangePositionViewModel.getExchangePositions().observe(this, exchangePositions -> {
-                recyclerView.setAdapter(new MyExchangePositionRecyclerViewAdapter(exchangePositions, mListener));
+                recyclerView.setAdapter(new MyExchangePositionRecyclerViewAdapter(exchangePositions, exchangePosition -> {
+                    try {
+                        fulfillExchangePosition(exchangePosition);
+                    } catch (IndyException | IOException | ExecutionException | InterruptedException e) {
+                        Log.e("STUDYBITS", "Exception while fulfilling exchange position");
+                        e.printStackTrace();
+                    }
+                    if (mListener != null) {
+                        mListener.onListFragmentInteraction(exchangePosition);
+                    }
+                }));
             });
         }
 
         return view;
+    }
+
+    private void fulfillExchangePosition(ExchangePosition exchangePosition) throws IndyException, IOException, ExecutionException, InterruptedException {
+        ProofRequest proofRequest = studentWallet.authDecrypt(exchangePosition.getAuthcryptedProofRequest(), ProofRequest.class).get();
+
+        Prover prover = new Prover(studentWallet, WalletActivity.STUDENT_SECRET_NAME);
+        Map<String, String> values = new HashMap<>();
+
+        AuthcryptedMessage authcryptedProof = prover.fulfillProofRequest(proofRequest, values)
+                .thenCompose(AsyncUtil.wrapException(prover::authEncrypt)).get();
+
+        MessageEnvelope proofEnvelope = new MessageEnvelope(authcryptedProof.getDid(), MessageEnvelope.MessageType.PROOF,
+                new TextNode(new String(Base64.encode(authcryptedProof.getMessage(), Base64.NO_WRAP), Charset.forName("utf8"))));
+
+        MessageEnvelope messageEnvelope = AgentClient.postAndReturnMessage(exchangePosition.getUniversity().getEndpoint(), proofEnvelope);
+
+        final ExchangePositionViewModel exchangePositionViewModel = ViewModelProviders.of(this)
+                .get(ExchangePositionViewModel.class);
+
+        List<University> universityList = AppDatabase.getInstance(getContext()).universityDao().getStatic();
+
+        exchangePositionViewModel.init(universityList);
     }
 
 
