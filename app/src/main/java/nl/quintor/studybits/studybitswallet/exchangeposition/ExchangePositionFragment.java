@@ -3,6 +3,7 @@ package nl.quintor.studybits.studybitswallet.exchangeposition;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -137,6 +138,7 @@ public class ExchangePositionFragment extends Fragment {
                 recyclerView.setAdapter(new MyExchangePositionRecyclerViewAdapter(exchangePositions, exchangePosition -> {
                     try {
                         fulfillExchangePosition(exchangePosition);
+                        Snackbar.make(view, "You're going abroad!", Snackbar.LENGTH_SHORT).show();
                     } catch (IndyException | IOException | ExecutionException | InterruptedException e) {
                         Log.e("STUDYBITS", "Exception while fulfilling exchange position");
                         e.printStackTrace();

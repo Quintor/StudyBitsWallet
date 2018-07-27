@@ -38,7 +38,12 @@ public class CredentialRecyclerViewAdapter extends RecyclerView.Adapter<Credenti
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.credentialOffer = credentials.get(position);
         holder.mIdView.setText(credentials.get(position).getUniversityName());
-        holder.mContentView.setText(credentials.get(position).getValue());
+        if (holder.credentialOffer.getCredentialOffer() != null) {
+            holder.mContentView.setText(holder.credentialOffer.getValue());
+        }
+        else {
+            holder.mContentView.setText(holder.credentialOffer.getCredential().getValues());
+        }
 
 
         if (holder.credentialOffer.getCredentialOffer() != null) {

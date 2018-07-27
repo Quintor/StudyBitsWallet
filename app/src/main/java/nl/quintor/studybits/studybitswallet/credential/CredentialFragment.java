@@ -3,6 +3,7 @@ package nl.quintor.studybits.studybitswallet.credential;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -168,7 +169,7 @@ public class CredentialFragment extends Fragment {
                 recyclerView.setAdapter(new CredentialRecyclerViewAdapter(credentialOrOffers, credentialOrOffer -> {
                     if (credentialOrOffer.getCredentialOffer() != null) {
                         acceptCredentialOffer(credentialOrOffer.getCredentialOffer());
-
+                        Snackbar.make(view, "Obtained credential!", Snackbar.LENGTH_SHORT).show();
                     }
                     mListener.onListFragmentInteraction(credentialOrOffer);
 
@@ -205,10 +206,10 @@ public class CredentialFragment extends Fragment {
             studentProver.storeCredential(credentialWithRequest).get();
 
             Credential credential = credentialWithRequest.getCredential();
-
             AppDatabase.getInstance(getContext()).credentialDao().insert(
                     new nl.quintor.studybits.studybitswallet.room.entity.Credential(credential.getCredDefId(), university.getTheirDid(), credential.getValues().toString()));
             Log.d("STUDYBITS", "Accepted credential offer");
+
         }
         catch (Exception e) {
             Log.e("STUDYBITS", "Exception when accepting credential offer" + e.getMessage());

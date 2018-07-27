@@ -3,6 +3,7 @@ package nl.quintor.studybits.studybitswallet.university;
 import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -77,6 +78,7 @@ public class UniversityActivity extends WalletActivity {
 
                         AppDatabase.getInstance(getApplicationContext()).universityDao().insertUniversities(university);
 
+                        Snackbar.make(view, "Connected to " + university.getName() + "!", Snackbar.LENGTH_SHORT).show();
                     } catch (Exception e) {
                         Log.e("STUDYBITS", "Exception on accepting connection request" + e.getMessage());
 
