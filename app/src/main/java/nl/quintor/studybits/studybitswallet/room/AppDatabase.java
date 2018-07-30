@@ -5,13 +5,11 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
 
-import nl.quintor.studybits.studybitswallet.room.entity.Credential;
 import nl.quintor.studybits.studybitswallet.room.entity.University;
 
-@Database(entities = {University.class, Credential.class}, version = 2, exportSchema = false)
+@Database(entities = {University.class}, version = 4, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract UniversityDao universityDao();
-    public abstract CredentialDao credentialDao();
 
     static AppDatabase appDatabase;
 

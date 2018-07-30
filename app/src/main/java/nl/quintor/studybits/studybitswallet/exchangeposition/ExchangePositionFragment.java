@@ -165,7 +165,7 @@ public class ExchangePositionFragment extends Fragment {
         MessageEnvelope proofEnvelope = new MessageEnvelope(authcryptedProof.getDid(), MessageEnvelope.MessageType.PROOF,
                 new TextNode(new String(Base64.encode(authcryptedProof.getMessage(), Base64.NO_WRAP), Charset.forName("utf8"))));
 
-        MessageEnvelope messageEnvelope = AgentClient.postAndReturnMessage(exchangePosition.getUniversity().getEndpoint(), proofEnvelope);
+        MessageEnvelope messageEnvelope = new AgentClient(exchangePosition.getUniversity().getEndpoint()).postAndReturnMessage(proofEnvelope);
 
         final ExchangePositionViewModel exchangePositionViewModel = ViewModelProviders.of(this)
                 .get(ExchangePositionViewModel.class);

@@ -25,7 +25,13 @@ import nl.quintor.studybits.studybitswallet.room.entity.University;
 
 public class AgentClient {
     public static Map<String, CookieManager> cookieManagers= new HashMap<>();
-    public static ConnectionRequest login(String endpoint, String username) {
+
+    private String endpoint;
+
+    public AgentClient(String endpoint) {
+        this.endpoint = endpoint;
+    }
+    public ConnectionRequest login(String username) {
         try {
             Log.d("STUDYBITS", "Logging in");
             URL url;
@@ -54,14 +60,14 @@ public class AgentClient {
         }
     }
 
-    public static List<MessageEnvelope> getCredentialOffers(String endpoint) throws IOException {
-        HttpURLConnection urlConnection = getConnection(endpoint, "/agent/credential_offer");
+    public List<MessageEnvelope> getCredentialOffers() throws IOException {
+        HttpURLConnection urlConnection = getConnection("/agent/credential_offer");
 
         return JSONUtil.mapper.readValue(new BufferedInputStream(urlConnection.getInputStream()), new TypeReference<List<MessageEnvelope>>() {});
     }
 
-    public static List<ExchangePosition> getExchangePositions(University university) throws IOException {
-        HttpURLConnection urlConnection = getConnection(university.getEndpoint(), "/agent/exchange_position");
+    public List<ExchangePosition> getExchangePositions(University university) throws IOException {
+        HttpURLConnection urlConnection = getConnection("/agent/exchange_position");
 
 
         List<ExchangePosition> exchangePositions = JSONUtil.mapper.readValue(new BufferedInputStream(urlConnection.getInputStream()), new TypeReference<List<ExchangePosition>>() {});
@@ -72,8 +78,8 @@ public class AgentClient {
     }
 
 
-    public static MessageEnvelope postAndReturnMessage(String endpoint, MessageEnvelope message) throws IOException {
-        HttpURLConnection urlConnection = getConnection(endpoint, "/agent/message");
+    public MessageEnvelope postAndReturnMessage(MessageEnvelope message) throws IOException {
+        HttpURLConnection urlConnection = getConnection("/agent/message");
 
         urlConnection.setRequestMethod("POST");
         urlConnection.setDoOutput(true);
@@ -87,7 +93,7 @@ public class AgentClient {
         return JSONUtil.mapper.readValue(new BufferedInputStream(urlConnection.getInputStream()), MessageEnvelope.class);
     }
 
-    public static HttpURLConnection getConnection(String endpoint, String path) throws IOException {
+    public HttpURLConnection getConnection(String path) throws IOException {
         CookieManager cookieManager = cookieManagers.computeIfAbsent(endpoint, s -> new CookieManager());
         CookieHandler.setDefault(cookieManager);
         URL url = new URL(endpoint + path);

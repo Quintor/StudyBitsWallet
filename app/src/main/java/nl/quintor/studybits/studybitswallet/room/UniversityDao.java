@@ -25,6 +25,9 @@ public interface UniversityDao {
     @Query("SELECT * FROM university WHERE theirDid = :did")
     public University getByDid(String did);
 
+    @Query("SELECT * FROM university WHERE credDefId = :credDefId")
+    public University getByCredDefId(String credDefId);
+
     @Query("DELETE FROM university")
     public void delete();
 }

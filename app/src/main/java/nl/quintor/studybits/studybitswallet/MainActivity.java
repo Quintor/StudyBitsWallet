@@ -153,7 +153,6 @@ public class MainActivity extends AppCompatActivity {
                 indyPool.close();
 
                 AppDatabase.getInstance(this).universityDao().delete();
-                AppDatabase.getInstance(this).credentialDao().deleteAll();
 
                 URL url = new URL(ENDPOINT_RUG + "/bootstrap/reset");
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -180,70 +179,6 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         });
-
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                try {
-//                    MessageEnvelope connectionRequestEnvelope = login();
-//
-//                    ConnectionRequest connectionRequest = JSONUtil.mapper.treeToValue(connectionRequestEnvelope.getMessage(), ConnectionRequest.class);
-//
-//                    Log.d("STUDYBITS", "Received connection request " + connectionRequest);
-//
-//                    AnoncryptedMessage anoncryptedConnectionResponse = studentWallet.acceptConnectionRequest(connectionRequest)
-//                            .thenCompose(AsyncUtil.wrapException(studentWallet::anonEncrypt)).get();
-//
-//                    MessageEnvelope connectionResponseEnvelope = new MessageEnvelope(connectionRequest.getRequestNonce(), MessageEnvelope.MessageType.CONNECTION_RESPONSE,
-//                            new TextNode(new String(Base64.encode(anoncryptedConnectionResponse.getMessage(), Base64.NO_WRAP), Charset.forName("utf8"))));
-//
-//                    Log.d("STUDYBITS", "Encoded base64 string: " + new String(Base64.encode(anoncryptedConnectionResponse.getMessage(), Base64.NO_WRAP), Charset.forName("utf8")));
-//
-//                    MessageEnvelope connectionAcknowledgementEnvelope = postAndReturnMessage(connectionResponseEnvelope);
-//
-//                    Log.d("STUDYBITS", "Obtained message of type " + connectionAcknowledgementEnvelope.getType());
-//
-//                    MessageEnvelope[] credentialOfferEnvelopes = getCredentialOffers();
-//
-//                    Log.d("STUDYBITS", "Obtained " + credentialOfferEnvelopes.length + " credential offers");
-//
-//                    AuthcryptedMessage authcryptedCredentialOffer = new AuthcryptedMessage(Base64.decode(credentialOfferEnvelopes[0].getMessage().asText(), Base64.NO_WRAP), credentialOfferEnvelopes[0].getId());
-//
-//                    CredentialOffer credentialOffer = studentWallet.authDecrypt(authcryptedCredentialOffer, CredentialOffer.class).get();
-//
-//
-//                    Prover prover = new Prover(studentWallet, "master_secret_name");
-//                    prover.init();
-//
-//                    AuthcryptedMessage authcryptedCredentialRequest = prover.createCredentialRequest(credentialOffer)
-//                            .thenCompose(AsyncUtil.wrapException(prover::authEncrypt)).get();
-//
-//                    MessageEnvelope authcryptedCredentialRequestEnvelope = new MessageEnvelope(authcryptedCredentialRequest.getDid(), MessageEnvelope.MessageType.CREDENTIAL_REQUEST,
-//                            new TextNode(new String(Base64.encode(authcryptedCredentialRequest.getMessage(), Base64.NO_WRAP), Charset.forName("utf8"))));
-//
-//                    MessageEnvelope credentialEnvelope = postAndReturnMessage(authcryptedCredentialRequestEnvelope);
-//
-//                    Log.d("STUDYBITS ", "Got message of type " + credentialEnvelope.getType());
-//
-//                    AuthcryptedMessage authcryptedCredential = new AuthcryptedMessage(Base64.decode(credentialEnvelope.getMessage().asText(), Base64.NO_WRAP), credentialEnvelope.getId());
-//
-//                    Credential credential = prover.authDecrypt(authcryptedCredential, CredentialWithRequest.class).get().getCredential();
-//
-//                    Log.d("STUDYBITS", "Got credential with values " + credential.getValues().toString());
-//
-//                }
-//                catch (Exception e) {
-//                    e.printStackTrace();
-//                    Log.d("Studybits", "Exception: " + e);
-//                    Log.d("STUDYBITS", "LocalizedMessage " + e.getLocalizedMessage());
-//                    Log.d("STUDYBITS", "Message" + e.getMessage());
-//                    return;
-//                }
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
     }
 
     public static String createPoolLedgerConfig(String testPoolIP, String poolName) throws IOException, InterruptedException, ExecutionException, IndyException {

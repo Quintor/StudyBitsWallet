@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import nl.quintor.studybits.indy.wrapper.dto.CredentialOffer;
 import nl.quintor.studybits.studybitswallet.R;
@@ -38,12 +39,18 @@ public class CredentialRecyclerViewAdapter extends RecyclerView.Adapter<Credenti
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.credentialOffer = credentials.get(position);
         holder.mIdView.setText(credentials.get(position).getUniversityName());
-        if (holder.credentialOffer.getCredentialOffer() != null) {
-            holder.mContentView.setText(holder.credentialOffer.getValue());
+        if (holder.credentialOffer.getCredential() != null) {
+            String text = holder.credentialOffer.getCredential().getAttrs()
+                    .entrySet()
+                    .stream()
+                    .map(entry -> entry.getKey() + ": " + entry.getValue())
+                    .collect(Collectors.joining("\n"));
+            holder.mContentView.setText(text);
         }
         else {
-            holder.mContentView.setText(holder.credentialOffer.getCredential().getValues());
+            holder.mContentView.setText(holder.credentialOffer.getValue());
         }
+
 
 
         if (holder.credentialOffer.getCredentialOffer() != null) {

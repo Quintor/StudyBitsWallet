@@ -63,19 +63,21 @@ public class UniversityActivity extends WalletActivity {
                     String endpoint = dialogFragment.getEndpointText();
                     String username = dialogFragment.getUsernameText();
                     Log.d("STUDYBITS", "Logging in with endpoint " + endpoint + " and username " + username);
-                    ConnectionRequest connectionRequest = AgentClient.login(endpoint, username);
+                    AgentClient agentClient = new AgentClient(endpoint);
+                    ConnectionRequest connectionRequest = agentClient.login(username);
                     try {
                         AnoncryptedMessage anoncryptedConnectionResponse = studentWallet.acceptConnectionRequest(connectionRequest)
                                 .thenCompose(AsyncUtil.wrapException(studentWallet::anonEncrypt)).get();
 
                         MessageEnvelope connectionResponseEnvelope = new MessageEnvelope(connectionRequest.getRequestNonce(), MessageEnvelope.MessageType.CONNECTION_RESPONSE,
                             new TextNode(new String(Base64.encode(anoncryptedConnectionResponse.getMessage(), Base64.NO_WRAP), Charset.forName("utf8"))));
-                        MessageEnvelope connectionAcknowledgementEnvelope = AgentClient.postAndReturnMessage(endpoint, connectionResponseEnvelope);
+                        MessageEnvelope connectionAcknowledgementEnvelope = agentClient.postAndReturnMessage(connectionResponseEnvelope);
 
                         String uniName = connectionAcknowledgementEnvelope.getMessage().asText();
 
                         University university = new University(uniName, endpoint, connectionRequest.getDid());
 
+                        Log.d("STUDYBITS", "Inserting university: " + university);
                         AppDatabase.getInstance(getApplicationContext()).universityDao().insertUniversities(university);
 
                         Snackbar.make(view, "Connected to " + university.getName() + "!", Snackbar.LENGTH_SHORT).show();

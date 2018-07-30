@@ -15,6 +15,9 @@ public class University {
     @NonNull
     private String theirDid;
 
+    @ColumnInfo
+    private String credDefId;
+
     public University(String name, String endpoint, @NonNull String theirDid) {
         this.name = name;
         this.endpoint = endpoint;
@@ -43,6 +46,14 @@ public class University {
 
     public void setTheirDid(String theirDid) {
         this.theirDid = theirDid;
+    }
+
+    public String getCredDefId() {
+        return credDefId;
+    }
+
+    public void setCredDefId(String credDefId) {
+        this.credDefId = credDefId;
     }
 
     @Override

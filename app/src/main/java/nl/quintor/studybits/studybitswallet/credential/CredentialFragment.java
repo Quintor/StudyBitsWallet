@@ -142,7 +142,8 @@ public class CredentialFragment extends Fragment {
             credentialOfferViewModel.getCredentials().observe(this, credentials -> {
                 List<CredentialOrOffer> credentialOrOffers = credentials.stream()
                         .map(credential -> {
-                            University university = AppDatabase.getInstance(context).universityDao().getByDid(credential.getIssuerDid());
+                            Log.d("STUDYBITS", "Credential Referent" + credential.getReferent());
+                            University university = AppDatabase.getInstance(context).universityDao().getByCredDefId(credential.getCredDefId());
                             return CredentialOrOffer.fromCredential(university.getName(), credential);
                         }).collect(Collectors.toList());
 
@@ -159,7 +160,7 @@ public class CredentialFragment extends Fragment {
                 if (credentialOfferViewModel.getCredentials().getValue() != null) {
                     List<CredentialOrOffer> credentials = credentialOfferViewModel.getCredentials().getValue().stream()
                             .map(credential -> {
-                                University university = AppDatabase.getInstance(context).universityDao().getByDid(credential.getIssuerDid());
+                                University university = AppDatabase.getInstance(context).universityDao().getByCredDefId(credential.getCredDefId());
                                 return CredentialOrOffer.fromCredential(university.getName(), credential);
                             }).collect(Collectors.toList());
                     credentialOrOffers.addAll(credentials);
@@ -168,7 +169,7 @@ public class CredentialFragment extends Fragment {
                 Log.d("STUDYBITS", "Setting credential offers adapter");
                 recyclerView.setAdapter(new CredentialRecyclerViewAdapter(credentialOrOffers, credentialOrOffer -> {
                     if (credentialOrOffer.getCredentialOffer() != null) {
-                        acceptCredentialOffer(credentialOrOffer.getCredentialOffer());
+                        acceptCredentialOffer(credentialOrOffer.getCredentialOffer(), credentialOfferViewModel);
                         Snackbar.make(view, "Obtained credential!", Snackbar.LENGTH_SHORT).show();
                     }
                     mListener.onListFragmentInteraction(credentialOrOffer);
@@ -182,7 +183,7 @@ public class CredentialFragment extends Fragment {
         return view;
     }
 
-    public void acceptCredentialOffer(CredentialOffer credentialOffer) {
+    public void acceptCredentialOffer(CredentialOffer credentialOffer, CredentialOfferViewModel credentialOfferViewModel) {
         try {
             Log.d("STUDYBITS", "Accepting credential offer");
 
@@ -197,7 +198,7 @@ public class CredentialFragment extends Fragment {
 
             University university = AppDatabase.getInstance(getContext()).universityDao().getByDid(credentialOffer.getTheirDid());
 
-            MessageEnvelope credentialEnvelope = AgentClient.postAndReturnMessage(university.getEndpoint(), credentialRequestEnvelope);
+            MessageEnvelope credentialEnvelope = new AgentClient(university.getEndpoint()).postAndReturnMessage(credentialRequestEnvelope);
 
             AuthcryptedMessage authcryptedCredential = new AuthcryptedMessage(Base64.decode(credentialEnvelope.getMessage().asText(), Base64.NO_WRAP), credentialEnvelope.getId());
 
@@ -206,9 +207,13 @@ public class CredentialFragment extends Fragment {
             studentProver.storeCredential(credentialWithRequest).get();
 
             Credential credential = credentialWithRequest.getCredential();
-            AppDatabase.getInstance(getContext()).credentialDao().insert(
-                    new nl.quintor.studybits.studybitswallet.room.entity.Credential(credential.getCredDefId(), university.getTheirDid(), credential.getValues().toString()));
+
+            university.setCredDefId(credential.getCredDefId());
+
+            AppDatabase.getInstance(getContext()).universityDao().insertUniversities(university);
+
             Log.d("STUDYBITS", "Accepted credential offer");
+            credentialOfferViewModel.initCredentials(studentWallet);
 
         }
         catch (Exception e) {
