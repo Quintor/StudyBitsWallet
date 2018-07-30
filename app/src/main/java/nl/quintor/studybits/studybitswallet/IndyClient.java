@@ -51,7 +51,7 @@ public class IndyClient {
 
             MessageEnvelope credentialEnvelope = new AgentClient(university.getEndpoint()).postAndReturnMessage(credentialRequestEnvelope);
 
-            AuthcryptedMessage authcryptedCredential = envelopeToAuthcryptedMessage(credentialEnvelope);
+            AuthcryptedMessage authcryptedCredential = new AuthcryptedMessage(Base64.decode(credentialEnvelope.getMessage().asText(), Base64.NO_WRAP), credentialEnvelope.getId());
 
             CredentialWithRequest credentialWithRequest = studentProver.authDecrypt(authcryptedCredential, CredentialWithRequest.class).get();
 
@@ -75,14 +75,13 @@ public class IndyClient {
     }
 
     @NonNull
-    private AuthcryptedMessage envelopeToAuthcryptedMessage(MessageEnvelope credentialEnvelope) {
-        return new AuthcryptedMessage(Base64.decode(credentialEnvelope.getMessage().asText(), Base64.NO_WRAP), credentialEnvelope.getId());
-    }
-
-    @NonNull
-    private MessageEnvelope envelopeFromAuthcrypted(AuthcryptedMessage authcryptedCredentialRequest, MessageEnvelope.MessageType type) {
+    public MessageEnvelope envelopeFromAuthcrypted(AuthcryptedMessage authcryptedCredentialRequest, MessageEnvelope.MessageType type) {
         return new MessageEnvelope(authcryptedCredentialRequest.getDid(), type,
                 new TextNode(new String(Base64.encode(authcryptedCredentialRequest.getMessage(), Base64.NO_WRAP), Charset.forName("utf8"))));
+    }
+
+    public static AuthcryptedMessage authcryptedMessageFromEnvelope(MessageEnvelope envelope) {
+        return new AuthcryptedMessage(Base64.decode(envelope.getMessage().asText(), Base64.NO_WRAP), envelope.getId());
     }
 
     public void fulfillExchangePosition(ExchangePosition exchangePosition) throws IndyException, IOException, ExecutionException, InterruptedException {

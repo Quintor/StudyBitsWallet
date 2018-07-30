@@ -10,6 +10,7 @@ import android.util.Log;
 
 import org.hyperledger.indy.sdk.IndyException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -23,6 +24,7 @@ import nl.quintor.studybits.indy.wrapper.dto.CredentialOffer;
 import nl.quintor.studybits.indy.wrapper.message.MessageEnvelope;
 import nl.quintor.studybits.indy.wrapper.util.AsyncUtil;
 import nl.quintor.studybits.studybitswallet.AgentClient;
+import nl.quintor.studybits.studybitswallet.IndyClient;
 import nl.quintor.studybits.studybitswallet.MainActivity;
 import nl.quintor.studybits.studybitswallet.WalletActivity;
 import nl.quintor.studybits.studybitswallet.room.AppDatabase;
@@ -53,15 +55,7 @@ public class CredentialOfferViewModel extends AndroidViewModel {
             List<CredentialOrOffer> credentialOrOffers = new ArrayList<>();
             for (University university : universities) {
                 Log.d("STUDYBITS", "Initializing credential offers for university " + university);
-                List<MessageEnvelope> offersForUni = new AgentClient(university.getEndpoint()).getCredentialOffers();
-
-                Log.d("STUDYBITS", "Got " + offersForUni.size() + " message envelopes with offers");
-
-                List<CredentialOrOffer> credentialOrOffersForUni = offersForUni.stream()
-                        .map(envelope -> new AuthcryptedMessage(Base64.decode(envelope.getMessage().asText(), Base64.NO_WRAP), envelope.getId()))
-                        .map(AsyncUtil.wrapException(message -> indyWallet.authDecrypt(message, CredentialOffer.class).get()))
-                        .map(credentialOffer -> CredentialOrOffer.fromCredentialOffer(university.getName(), credentialOffer))
-                        .collect(Collectors.toList());
+                List<CredentialOrOffer> credentialOrOffersForUni = getCredentialOrOffers(indyWallet, university);
 
                 credentialOrOffers.addAll(credentialOrOffersForUni);
             }
@@ -74,6 +68,18 @@ public class CredentialOfferViewModel extends AndroidViewModel {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+    }
+
+    private List<CredentialOrOffer> getCredentialOrOffers(IndyWallet indyWallet, University university) throws IOException {
+        List<MessageEnvelope> offersForUni = new AgentClient(university.getEndpoint()).getCredentialOffers();
+
+        Log.d("STUDYBITS", "Got " + offersForUni.size() + " message envelopes with offers");
+
+        return offersForUni.stream()
+                .map(IndyClient::authcryptedMessageFromEnvelope)
+                .map(AsyncUtil.wrapException(message -> indyWallet.authDecrypt(message, CredentialOffer.class).get()))
+                .map(credentialOffer -> CredentialOrOffer.fromCredentialOffer(university.getName(), credentialOffer))
+                .collect(Collectors.toList());
     }
 
 
