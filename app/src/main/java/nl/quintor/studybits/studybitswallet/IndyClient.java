@@ -84,18 +84,19 @@ public class IndyClient {
         return new AuthcryptedMessage(Base64.decode(envelope.getMessage().asText(), Base64.NO_WRAP), envelope.getId());
     }
 
-    public void fulfillExchangePosition(ExchangePosition exchangePosition) throws IndyException, IOException, ExecutionException, InterruptedException {
-        ProofRequest proofRequest = studentWallet.authDecrypt(exchangePosition.getAuthcryptedProofRequest(), ProofRequest.class).get();
+    public ProofRequest extractProofRequest(ExchangePosition exchangePosition) throws IndyException, ExecutionException, InterruptedException {
+        return studentWallet.authDecrypt(exchangePosition.getAuthcryptedProofRequest(), ProofRequest.class).get();
+    }
+
+    public MessageEnvelope fulfillExchangePosition(ExchangePosition exchangePosition) throws IndyException, IOException, ExecutionException, InterruptedException {
+        ProofRequest proofRequest = extractProofRequest(exchangePosition);
 
         Prover prover = new Prover(studentWallet, WalletActivity.STUDENT_SECRET_NAME);
         Map<String, String> values = new HashMap<>();
 
         AuthcryptedMessage authcryptedProof = prover.fulfillProofRequest(proofRequest, values)
                 .thenCompose(AsyncUtil.wrapException(prover::authEncrypt)).get();
-
-        MessageEnvelope proofEnvelope = envelopeFromAuthcrypted(authcryptedProof, MessageEnvelope.MessageType.PROOF);
-
-        MessageEnvelope messageEnvelope = new AgentClient(exchangePosition.getUniversity().getEndpoint()).postAndReturnMessage(proofEnvelope);
+        return envelopeFromAuthcrypted(authcryptedProof, MessageEnvelope.MessageType.PROOF);
     }
 
     @NonNull

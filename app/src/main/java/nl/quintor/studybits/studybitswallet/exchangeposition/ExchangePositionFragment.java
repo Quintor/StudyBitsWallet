@@ -2,9 +2,11 @@ package nl.quintor.studybits.studybitswallet.exchangeposition;
 
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -25,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import nl.quintor.studybits.indy.wrapper.IndyPool;
 import nl.quintor.studybits.indy.wrapper.IndyWallet;
@@ -137,13 +140,28 @@ public class ExchangePositionFragment extends Fragment {
                 recyclerView.setAdapter(new MyExchangePositionRecyclerViewAdapter(exchangePositions, exchangePosition -> {
                     try {
                         IndyClient indyClient = new IndyClient(studentWallet, AppDatabase.getInstance(getContext()));
-                        indyClient.fulfillExchangePosition(exchangePosition);
+                        ProofRequest proofRequest = indyClient.extractProofRequest(exchangePosition);
 
-                        refreshPositions();
+                        AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
+                                .setMessage("Requested attributes: " + proofRequest.getRequestedAttributes().entrySet().stream()
+                                .map(entry -> entry.getValue().getName()).collect(Collectors.joining(", ")))
+                                .setPositiveButton("Send", (dialogInterface, i) -> {
+                                    try {
+                                        MessageEnvelope proofEnvelope = indyClient.fulfillExchangePosition(exchangePosition);
+                                        new AgentClient(exchangePosition.getUniversity().getEndpoint()).postAndReturnMessage(proofEnvelope);
+                                    } catch (Exception e) {
+                                        Log.e("STUDYBITS", "Exception while fulfilling exchange position (sending)");
+                                        e.printStackTrace();
+                                    }
 
+                                    refreshPositions();
+                                    Snackbar.make(view, "You're going abroad!", Snackbar.LENGTH_SHORT).show();
 
-                        Snackbar.make(view, "You're going abroad!", Snackbar.LENGTH_SHORT).show();
-                    } catch (IndyException | IOException | ExecutionException | InterruptedException e) {
+                                })
+                                .create();
+
+                        alertDialog.show();
+                    } catch (IndyException  | ExecutionException | InterruptedException e) {
                         Log.e("STUDYBITS", "Exception while fulfilling exchange position");
                         e.printStackTrace();
                     }
