@@ -34,6 +34,7 @@ import nl.quintor.studybits.indy.wrapper.dto.ProofRequest;
 import nl.quintor.studybits.indy.wrapper.message.MessageEnvelope;
 import nl.quintor.studybits.indy.wrapper.util.AsyncUtil;
 import nl.quintor.studybits.studybitswallet.AgentClient;
+import nl.quintor.studybits.studybitswallet.IndyClient;
 import nl.quintor.studybits.studybitswallet.R;
 import nl.quintor.studybits.studybitswallet.WalletActivity;
 import nl.quintor.studybits.studybitswallet.room.AppDatabase;
@@ -130,14 +131,17 @@ public class ExchangePositionFragment extends Fragment {
             final ExchangePositionViewModel exchangePositionViewModel = ViewModelProviders.of(this)
                     .get(ExchangePositionViewModel.class);
 
-            List<University> universityList = AppDatabase.getInstance(getContext()).universityDao().getStatic();
-
-            exchangePositionViewModel.init(universityList);
+            refreshPositions();
 
             exchangePositionViewModel.getExchangePositions().observe(this, exchangePositions -> {
                 recyclerView.setAdapter(new MyExchangePositionRecyclerViewAdapter(exchangePositions, exchangePosition -> {
                     try {
-                        fulfillExchangePosition(exchangePosition);
+                        IndyClient indyClient = new IndyClient(studentWallet, AppDatabase.getInstance(getContext()));
+                        indyClient.fulfillExchangePosition(exchangePosition);
+
+                        refreshPositions();
+
+
                         Snackbar.make(view, "You're going abroad!", Snackbar.LENGTH_SHORT).show();
                     } catch (IndyException | IOException | ExecutionException | InterruptedException e) {
                         Log.e("STUDYBITS", "Exception while fulfilling exchange position");
@@ -153,25 +157,11 @@ public class ExchangePositionFragment extends Fragment {
         return view;
     }
 
-    private void fulfillExchangePosition(ExchangePosition exchangePosition) throws IndyException, IOException, ExecutionException, InterruptedException {
-        ProofRequest proofRequest = studentWallet.authDecrypt(exchangePosition.getAuthcryptedProofRequest(), ProofRequest.class).get();
-
-        Prover prover = new Prover(studentWallet, WalletActivity.STUDENT_SECRET_NAME);
-        Map<String, String> values = new HashMap<>();
-
-        AuthcryptedMessage authcryptedProof = prover.fulfillProofRequest(proofRequest, values)
-                .thenCompose(AsyncUtil.wrapException(prover::authEncrypt)).get();
-
-        MessageEnvelope proofEnvelope = new MessageEnvelope(authcryptedProof.getDid(), MessageEnvelope.MessageType.PROOF,
-                new TextNode(new String(Base64.encode(authcryptedProof.getMessage(), Base64.NO_WRAP), Charset.forName("utf8"))));
-
-        MessageEnvelope messageEnvelope = new AgentClient(exchangePosition.getUniversity().getEndpoint()).postAndReturnMessage(proofEnvelope);
-
+    private void refreshPositions() {
         final ExchangePositionViewModel exchangePositionViewModel = ViewModelProviders.of(this)
                 .get(ExchangePositionViewModel.class);
 
         List<University> universityList = AppDatabase.getInstance(getContext()).universityDao().getStatic();
-
         exchangePositionViewModel.init(universityList);
     }
 

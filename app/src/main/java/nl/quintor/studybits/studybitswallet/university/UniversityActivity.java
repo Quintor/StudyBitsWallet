@@ -2,6 +2,7 @@ package nl.quintor.studybits.studybitswallet.university;
 
 import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +18,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 
 import org.hyperledger.indy.sdk.IndyException;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
@@ -28,6 +30,7 @@ import nl.quintor.studybits.indy.wrapper.dto.ConnectionRequest;
 import nl.quintor.studybits.indy.wrapper.message.MessageEnvelope;
 import nl.quintor.studybits.indy.wrapper.util.AsyncUtil;
 import nl.quintor.studybits.studybitswallet.AgentClient;
+import nl.quintor.studybits.studybitswallet.IndyClient;
 import nl.quintor.studybits.studybitswallet.MainActivity;
 import nl.quintor.studybits.studybitswallet.R;
 import nl.quintor.studybits.studybitswallet.WalletActivity;
@@ -66,19 +69,8 @@ public class UniversityActivity extends WalletActivity {
                     AgentClient agentClient = new AgentClient(endpoint);
                     ConnectionRequest connectionRequest = agentClient.login(username);
                     try {
-                        AnoncryptedMessage anoncryptedConnectionResponse = studentWallet.acceptConnectionRequest(connectionRequest)
-                                .thenCompose(AsyncUtil.wrapException(studentWallet::anonEncrypt)).get();
-
-                        MessageEnvelope connectionResponseEnvelope = new MessageEnvelope(connectionRequest.getRequestNonce(), MessageEnvelope.MessageType.CONNECTION_RESPONSE,
-                            new TextNode(new String(Base64.encode(anoncryptedConnectionResponse.getMessage(), Base64.NO_WRAP), Charset.forName("utf8"))));
-                        MessageEnvelope connectionAcknowledgementEnvelope = agentClient.postAndReturnMessage(connectionResponseEnvelope);
-
-                        String uniName = connectionAcknowledgementEnvelope.getMessage().asText();
-
-                        University university = new University(uniName, endpoint, connectionRequest.getDid());
-
-                        Log.d("STUDYBITS", "Inserting university: " + university);
-                        AppDatabase.getInstance(getApplicationContext()).universityDao().insertUniversities(university);
+                        IndyClient indyClient = new IndyClient(studentWallet, AppDatabase.getInstance(getApplicationContext()));
+                        University university = indyClient.connect(endpoint, agentClient, connectionRequest);
 
                         Snackbar.make(view, "Connected to " + university.getName() + "!", Snackbar.LENGTH_SHORT).show();
                     } catch (Exception e) {

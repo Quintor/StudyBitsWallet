@@ -3,41 +3,30 @@ package nl.quintor.studybits.studybitswallet.credential;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.node.TextNode;
 
 import org.hyperledger.indy.sdk.IndyException;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import nl.quintor.studybits.indy.wrapper.IndyPool;
 import nl.quintor.studybits.indy.wrapper.IndyWallet;
-import nl.quintor.studybits.indy.wrapper.Prover;
-import nl.quintor.studybits.indy.wrapper.dto.AuthcryptedMessage;
-import nl.quintor.studybits.indy.wrapper.dto.Credential;
-import nl.quintor.studybits.indy.wrapper.dto.CredentialOffer;
-import nl.quintor.studybits.indy.wrapper.dto.CredentialWithRequest;
-import nl.quintor.studybits.indy.wrapper.message.MessageEnvelope;
-import nl.quintor.studybits.indy.wrapper.util.AsyncUtil;
-import nl.quintor.studybits.studybitswallet.AgentClient;
+import nl.quintor.studybits.studybitswallet.IndyClient;
 import nl.quintor.studybits.studybitswallet.R;
-import nl.quintor.studybits.studybitswallet.WalletActivity;
 import nl.quintor.studybits.studybitswallet.room.AppDatabase;
 import nl.quintor.studybits.studybitswallet.room.entity.University;
 
@@ -138,6 +127,7 @@ public class CredentialFragment extends Fragment {
             initWallet();
 
             credentialOfferViewModel.initCredentialOffers(endpoints, studentWallet);
+            credentialOfferViewModel.initCredentials(studentWallet);
 
             credentialOfferViewModel.getCredentials().observe(this, credentials -> {
                 List<CredentialOrOffer> credentialOrOffers = credentials.stream()
@@ -151,7 +141,7 @@ public class CredentialFragment extends Fragment {
                     credentialOrOffers.addAll(credentialOfferViewModel.getCredentialOffers().getValue());
                 }
 
-                ((CredentialRecyclerViewAdapter) recyclerView.getAdapter()).setDataset(credentialOrOffers);
+                recyclerView.setAdapter(createAdapter(view, endpoints, credentialOfferViewModel, credentialOrOffers));
             });
 
             credentialOfferViewModel.getCredentialOffers().observe(this, credentialOffers ->
@@ -167,15 +157,7 @@ public class CredentialFragment extends Fragment {
                 }
 
                 Log.d("STUDYBITS", "Setting credential offers adapter");
-                recyclerView.setAdapter(new CredentialRecyclerViewAdapter(credentialOrOffers, credentialOrOffer -> {
-                    if (credentialOrOffer.getCredentialOffer() != null) {
-                        acceptCredentialOffer(credentialOrOffer.getCredentialOffer(), credentialOfferViewModel);
-                        Snackbar.make(view, "Obtained credential!", Snackbar.LENGTH_SHORT).show();
-                    }
-                    mListener.onListFragmentInteraction(credentialOrOffer);
-
-                    credentialOfferViewModel.initCredentialOffers(endpoints, studentWallet);
-                }));
+                recyclerView.setAdapter(createAdapter(view, endpoints, credentialOfferViewModel, credentialOrOffers));
             });
 
 
@@ -183,44 +165,20 @@ public class CredentialFragment extends Fragment {
         return view;
     }
 
-    public void acceptCredentialOffer(CredentialOffer credentialOffer, CredentialOfferViewModel credentialOfferViewModel) {
-        try {
-            Log.d("STUDYBITS", "Accepting credential offer");
+    @NonNull
+    private CredentialRecyclerViewAdapter createAdapter(View view, List<University> endpoints, CredentialOfferViewModel credentialOfferViewModel, List<CredentialOrOffer> credentialOrOffers) {
+        return new CredentialRecyclerViewAdapter(credentialOrOffers, credentialOrOffer -> {
+            if (credentialOrOffer.getCredentialOffer() != null) {
+                initWallet();
+                IndyClient indyClient = new IndyClient(studentWallet, AppDatabase.getInstance(getContext()));
+                indyClient.acceptCredentialOffer(credentialOrOffer.getCredentialOffer());
+                credentialOfferViewModel.initCredentials(studentWallet);
+                Snackbar.make(view, "Obtained credential!", Snackbar.LENGTH_SHORT).show();
+            }
+            mListener.onListFragmentInteraction(credentialOrOffer);
 
-            initWallet();
-
-            Prover studentProver = new Prover(studentWallet, WalletActivity.STUDENT_SECRET_NAME);
-
-            AuthcryptedMessage authcryptedCredentialRequest = studentProver.createCredentialRequest(credentialOffer)
-                    .thenCompose(AsyncUtil.wrapException(studentProver::authEncrypt)).get();
-            MessageEnvelope credentialRequestEnvelope = new MessageEnvelope(authcryptedCredentialRequest.getDid(), MessageEnvelope.MessageType.CREDENTIAL_REQUEST,
-                    new TextNode(new String(Base64.encode(authcryptedCredentialRequest.getMessage(), Base64.NO_WRAP), Charset.forName("utf8"))));
-
-            University university = AppDatabase.getInstance(getContext()).universityDao().getByDid(credentialOffer.getTheirDid());
-
-            MessageEnvelope credentialEnvelope = new AgentClient(university.getEndpoint()).postAndReturnMessage(credentialRequestEnvelope);
-
-            AuthcryptedMessage authcryptedCredential = new AuthcryptedMessage(Base64.decode(credentialEnvelope.getMessage().asText(), Base64.NO_WRAP), credentialEnvelope.getId());
-
-            CredentialWithRequest credentialWithRequest = studentProver.authDecrypt(authcryptedCredential, CredentialWithRequest.class).get();
-
-            studentProver.storeCredential(credentialWithRequest).get();
-
-            Credential credential = credentialWithRequest.getCredential();
-
-            university.setCredDefId(credential.getCredDefId());
-
-            AppDatabase.getInstance(getContext()).universityDao().insertUniversities(university);
-
-            Log.d("STUDYBITS", "Accepted credential offer");
-            credentialOfferViewModel.initCredentials(studentWallet);
-
-        }
-        catch (Exception e) {
-            Log.e("STUDYBITS", "Exception when accepting credential offer" + e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+            credentialOfferViewModel.initCredentialOffers(endpoints, studentWallet);
+        });
     }
 
 
