@@ -55,8 +55,9 @@ import nl.quintor.studybits.studybitswallet.university.UniversityActivity;
 
 
 public class MainActivity extends AppCompatActivity {
-    static String ENDPOINT_RUG = "http://10.31.200.120:8080";
-    static String ENDPOINT_GENT = "http://10.31.200.120:8081";
+    static String ENDPOINT_IP = "10.31.200.120";
+    static String ENDPOINT_RUG = "http://" + ENDPOINT_IP + ":8080";
+    static String ENDPOINT_GENT = "http://" + ENDPOINT_IP + ":8081";
 
     static {
         Log.d("STUDYBITS", "Attempting to load indy");
@@ -141,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("STUDYBITS", "Loading other indy");
                 LibIndy.API api = (LibIndy.API) Native.loadLibrary("indy", LibIndy.API.class);
                 Log.d("STUDYBITS", "Indy api object: " + api);
-                String poolName = PoolUtils.createPoolLedgerConfig("10.31.200.120", "testPool");
+                String poolName = PoolUtils.createPoolLedgerConfig(ENDPOINT_IP, "testPool");
 
                 IndyPool indyPool = new IndyPool(poolName);
                 IndyWallet tempWallet = IndyWallet.create(indyPool, "student_wallet", "000000000000000000000000Student1");
