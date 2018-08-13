@@ -71,13 +71,12 @@ public class CredentialOfferViewModel extends AndroidViewModel {
     }
 
     private List<CredentialOrOffer> getCredentialOrOffers(IndyWallet indyWallet, University university) throws IOException {
-        List<MessageEnvelope> offersForUni = new AgentClient(university.getEndpoint()).getCredentialOffers();
+        List<MessageEnvelope<CredentialOffer>> offersForUni = new AgentClient(university.getEndpoint()).getCredentialOffers(indyWallet);
 
         Log.d("STUDYBITS", "Got " + offersForUni.size() + " message envelopes with offers");
 
         return offersForUni.stream()
-                .map(IndyClient::authcryptedMessageFromEnvelope)
-                .map(AsyncUtil.wrapException(message -> indyWallet.authDecrypt(message, CredentialOffer.class).get()))
+                .map(AsyncUtil.wrapException(MessageEnvelope::getMessage))
                 .map(credentialOffer -> CredentialOrOffer.fromCredentialOffer(university.getName(), credentialOffer))
                 .collect(Collectors.toList());
     }
