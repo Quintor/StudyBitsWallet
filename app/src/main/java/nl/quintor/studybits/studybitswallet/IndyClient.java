@@ -19,10 +19,14 @@ import nl.quintor.studybits.indy.wrapper.Prover;
 import nl.quintor.studybits.indy.wrapper.dto.AnoncryptedMessage;
 import nl.quintor.studybits.indy.wrapper.dto.AuthcryptedMessage;
 import nl.quintor.studybits.indy.wrapper.dto.ConnectionRequest;
+import nl.quintor.studybits.indy.wrapper.dto.ConnectionResponse;
 import nl.quintor.studybits.indy.wrapper.dto.Credential;
 import nl.quintor.studybits.indy.wrapper.dto.CredentialOffer;
+import nl.quintor.studybits.indy.wrapper.dto.CredentialRequest;
 import nl.quintor.studybits.indy.wrapper.dto.CredentialWithRequest;
+import nl.quintor.studybits.indy.wrapper.dto.Proof;
 import nl.quintor.studybits.indy.wrapper.dto.ProofRequest;
+import nl.quintor.studybits.indy.wrapper.message.IndyMessageTypes;
 import nl.quintor.studybits.indy.wrapper.message.MessageEnvelope;
 import nl.quintor.studybits.indy.wrapper.util.AsyncUtil;
 import nl.quintor.studybits.studybitswallet.exchangeposition.ExchangePosition;
@@ -43,17 +47,14 @@ public class IndyClient {
             Log.d("STUDYBITS", "Accepting credential offer");
             Prover studentProver = new Prover(studentWallet, WalletActivity.STUDENT_SECRET_NAME);
 
-            AuthcryptedMessage authcryptedCredentialRequest = studentProver.createCredentialRequest(credentialOffer)
-                    .thenCompose(AsyncUtil.wrapException(studentProver::authEncrypt)).get();
-            MessageEnvelope credentialRequestEnvelope = envelopeFromAuthcrypted(authcryptedCredentialRequest, MessageEnvelope.MessageType.CREDENTIAL_REQUEST);
+            CredentialRequest credentialRequest = studentProver.createCredentialRequest(credentialOffer).get();
+            MessageEnvelope credentialRequestEnvelope = MessageEnvelope.fromAuthcryptable(credentialRequest, IndyMessageTypes.CREDENTIAL_REQUEST, studentWallet);
 
             University university = appDatabase.universityDao().getByDid(credentialOffer.getTheirDid());
 
-            MessageEnvelope credentialEnvelope = new AgentClient(university.getEndpoint()).postAndReturnMessage(credentialRequestEnvelope);
+            MessageEnvelope<CredentialWithRequest> credentialEnvelope = new AgentClient(university.getEndpoint()).postAndReturnMessage(credentialRequestEnvelope, studentWallet);
 
-            AuthcryptedMessage authcryptedCredential = new AuthcryptedMessage(Base64.decode(credentialEnvelope.getMessage().asText(), Base64.NO_WRAP), credentialEnvelope.getId());
-
-            CredentialWithRequest credentialWithRequest = studentProver.authDecrypt(authcryptedCredential, CredentialWithRequest.class).get();
+            CredentialWithRequest credentialWithRequest = credentialEnvelope.getMessage();
 
             studentProver.storeCredential(credentialWithRequest).get();
 
@@ -74,16 +75,6 @@ public class IndyClient {
         }
     }
 
-    @NonNull
-    public MessageEnvelope envelopeFromAuthcrypted(AuthcryptedMessage authcryptedCredentialRequest, MessageEnvelope.MessageType type) {
-        return new MessageEnvelope(authcryptedCredentialRequest.getDid(), type,
-                new TextNode(new String(Base64.encode(authcryptedCredentialRequest.getMessage(), Base64.NO_WRAP), Charset.forName("utf8"))));
-    }
-
-    public static AuthcryptedMessage authcryptedMessageFromEnvelope(MessageEnvelope envelope) {
-        return new AuthcryptedMessage(Base64.decode(envelope.getMessage().asText(), Base64.NO_WRAP), envelope.getId());
-    }
-
     public ProofRequest extractProofRequest(ExchangePosition exchangePosition) throws IndyException, ExecutionException, InterruptedException {
         return studentWallet.authDecrypt(exchangePosition.getAuthcryptedProofRequest(), ProofRequest.class).get();
     }
@@ -94,31 +85,23 @@ public class IndyClient {
         Prover prover = new Prover(studentWallet, WalletActivity.STUDENT_SECRET_NAME);
         Map<String, String> values = new HashMap<>();
 
-        AuthcryptedMessage authcryptedProof = prover.fulfillProofRequest(proofRequest, values)
-                .thenCompose(AsyncUtil.wrapException(prover::authEncrypt)).get();
-        return envelopeFromAuthcrypted(authcryptedProof, MessageEnvelope.MessageType.PROOF);
+        Proof proof = prover.fulfillProofRequest(proofRequest, values).get();
+        return MessageEnvelope.fromAuthcryptable(proof, IndyMessageTypes.PROOF, studentWallet);
     }
 
     @NonNull
     public University connect(String endpoint, AgentClient agentClient, ConnectionRequest connectionRequest) throws InterruptedException, ExecutionException, IndyException, IOException {
-        AnoncryptedMessage anoncryptedConnectionResponse = studentWallet.acceptConnectionRequest(connectionRequest)
-                .thenCompose(AsyncUtil.wrapException(studentWallet::anonEncrypt)).get();
+        ConnectionResponse connectionResponse = studentWallet.acceptConnectionRequest(connectionRequest).get();
 
-        MessageEnvelope connectionResponseEnvelope = fromAnoncryptedMessage(connectionRequest.getRequestNonce(), MessageEnvelope.MessageType.CONNECTION_RESPONSE, anoncryptedConnectionResponse.getMessage());
-        MessageEnvelope connectionAcknowledgementEnvelope = agentClient.postAndReturnMessage(connectionResponseEnvelope);
+        MessageEnvelope connectionResponseEnvelope = MessageEnvelope.fromAnoncryptable(connectionResponse, IndyMessageTypes.CONNECTION_RESPONSE, studentWallet);
+        MessageEnvelope<String> connectionAcknowledgementEnvelope = agentClient.postAndReturnMessage(connectionResponseEnvelope, studentWallet);
 
-        String uniName = connectionAcknowledgementEnvelope.getMessage().asText();
+        String uniName = connectionAcknowledgementEnvelope.getMessage();
 
         University university = new University(uniName, endpoint, connectionRequest.getDid());
 
         Log.d("STUDYBITS", "Inserting university: " + university);
         appDatabase.universityDao().insertUniversities(university);
         return university;
-    }
-
-    @NonNull
-    private MessageEnvelope fromAnoncryptedMessage(String requestNonce, MessageEnvelope.MessageType connectionResponse, byte[] message) {
-        return new MessageEnvelope(requestNonce, connectionResponse,
-                new TextNode(new String(Base64.encode(message, Base64.NO_WRAP), Charset.forName("utf8"))));
     }
 }

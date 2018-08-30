@@ -45,6 +45,7 @@ import java.util.concurrent.ExecutionException;
 import nl.quintor.studybits.indy.wrapper.IndyPool;
 import nl.quintor.studybits.indy.wrapper.IndyWallet;
 import nl.quintor.studybits.indy.wrapper.Prover;
+import nl.quintor.studybits.indy.wrapper.message.IndyMessageTypes;
 import nl.quintor.studybits.indy.wrapper.message.MessageEnvelope;
 import nl.quintor.studybits.indy.wrapper.util.JSONUtil;
 import nl.quintor.studybits.indy.wrapper.util.PoolUtils;
@@ -152,6 +153,8 @@ public class MainActivity extends AppCompatActivity {
                 tempWallet.close();
                 Log.d("STUDYBITS", "Closing tempWallet");
                 indyPool.close();
+
+                IndyMessageTypes.init();
 
                 AppDatabase.getInstance(this).universityDao().delete();
 
