@@ -44,6 +44,7 @@ import nl.quintor.studybits.studybitswallet.room.AppDatabase;
 import nl.quintor.studybits.studybitswallet.room.entity.University;
 
 import static nl.quintor.studybits.studybitswallet.WalletActivity.STUDENT_DID;
+import static nl.quintor.studybits.studybitswallet.WalletActivity.STUDENT_SEED;
 
 /**
  * A fragment representing a list of Items.
@@ -70,7 +71,7 @@ public class ExchangePositionFragment extends Fragment {
         try {
             if (indyPool == null || studentWallet == null) {
                 indyPool = new IndyPool("testPool");
-                studentWallet = IndyWallet.open(indyPool, "student_wallet", STUDENT_DID);
+                studentWallet = IndyWallet.open(indyPool, "student_wallet", STUDENT_SEED, STUDENT_DID);
             }
         } catch (IndyException | ExecutionException | InterruptedException | JsonProcessingException e) {
             Log.e("STUDYBITS", "Exception on resume " + e.getMessage());

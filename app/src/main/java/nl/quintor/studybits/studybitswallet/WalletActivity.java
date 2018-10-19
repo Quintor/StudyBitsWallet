@@ -16,15 +16,13 @@ public abstract class WalletActivity extends AppCompatActivity {
     protected static IndyPool indyPool;
     protected static IndyWallet studentWallet;
 
-    public static final String STUDENT_DID = "Xepuw1Y1k9DpvoSvZaoVJr";
-    public static final String STUDENT_SECRET_NAME = "student_secret_name";
 
     @Override
     protected void onResume() {
         super.onResume();
         try {
             indyPool = new IndyPool("testPool");
-            studentWallet = IndyWallet.open(indyPool, "student_wallet", STUDENT_DID);
+            studentWallet = IndyWallet.open(indyPool, "student_wallet", TestConfiguration.STUDENT_SEED, TestConfiguration.STUDENT_DID);
         } catch (IndyException | ExecutionException | InterruptedException | JsonProcessingException e) {
             Log.e("STUDYBITS", "Exception on resume " + e.getMessage());
             e.printStackTrace();
