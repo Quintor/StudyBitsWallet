@@ -19,19 +19,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sun.jna.Native;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.hyperledger.indy.sdk.IndyException;
 import org.hyperledger.indy.sdk.LibIndy;
 import org.hyperledger.indy.sdk.pool.Pool;
-import org.hyperledger.indy.sdk.pool.PoolJSONParameters;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.CookieHandler;
@@ -40,7 +36,6 @@ import java.net.CookiePolicy;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.concurrent.ExecutionException;
 
 import nl.quintor.studybits.indy.wrapper.IndyPool;
 import nl.quintor.studybits.indy.wrapper.IndyWallet;
@@ -56,11 +51,9 @@ import nl.quintor.studybits.studybitswallet.university.UniversityActivity;
 
 
 public class MainActivity extends AppCompatActivity {
-    static String ENDPOINT_IP = "10.31.200.120";
-    static String ENDPOINT_RUG = "http://" + ENDPOINT_IP + ":8080";
-    static String ENDPOINT_GENT = "http://" + ENDPOINT_IP + ":8081";
 
     static {
+        Log.d("STUDYBITS", "ENDPOINT IP: " + TestConfiguration.ENDPOINT_IP);
         Log.d("STUDYBITS", "Attempting to load indy");
         System.loadLibrary("indy");
         Log.d("STUDYBITS", "Loaded indy");
@@ -84,7 +77,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d("STUDYBITS", "Test");
 
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -115,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(view -> {
+        fab.setOnClickListener((View view) -> {
             try {
                 int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
@@ -128,14 +120,22 @@ public class MainActivity extends AppCompatActivity {
                     );
                 }
 
-                File indyClientDir = new File(Environment.getExternalStorageDirectory().getPath() + "/.indy_client/");
-
-                for (File file : FileUtils.listFilesAndDirs(indyClientDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
-                    Log.d("STUDYBITS", "File " + file);
+                File indyClientDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/.indy_client/");
+                boolean indyFolderExists = true;
+                if (!indyClientDir.exists()) {
+                    indyFolderExists = indyClientDir.mkdir();
                 }
-
-                FileUtils.deleteDirectory(indyClientDir);
-
+                if (indyFolderExists) {
+                    Log.d("STUDYBITS", indyClientDir.toString());
+                    for (File file : FileUtils.listFilesAndDirs(indyClientDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
+                        Log.d("STUDYBITS", "File " + file);
+                    }
+                    try {
+                        FileUtils.deleteDirectory(indyClientDir);
+                    } catch (IOException e) {
+                        throw new IOException(e);
+                    }
+                }
                 for (String abi : Build.SUPPORTED_ABIS) {
                     Log.d("STUDYBITS", "Supported ABI: " + abi);
                 }
@@ -143,12 +143,14 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("STUDYBITS", "Loading other indy");
                 LibIndy.API api = (LibIndy.API) Native.loadLibrary("indy", LibIndy.API.class);
                 Log.d("STUDYBITS", "Indy api object: " + api);
-                String poolName = PoolUtils.createPoolLedgerConfig(ENDPOINT_IP, "testPool");
+                Pool.setProtocolVersion(PoolUtils.PROTOCOL_VERSION).get();
+
+                String poolName = PoolUtils.createPoolLedgerConfig(TestConfiguration.ENDPOINT_IP, "testPool");
 
                 IndyPool indyPool = new IndyPool(poolName);
-                IndyWallet tempWallet = IndyWallet.create(indyPool, "student_wallet", "000000000000000000000000Student1");
+                IndyWallet tempWallet = IndyWallet.create(indyPool, "student_wallet", TestConfiguration.STUDENT_SEED);
 
-                Prover prover = new Prover(tempWallet, WalletActivity.STUDENT_SECRET_NAME);
+                Prover prover = new Prover(tempWallet, TestConfiguration.STUDENT_SECRET_NAME);
                 prover.init();
                 tempWallet.close();
                 Log.d("STUDYBITS", "Closing tempWallet");
@@ -158,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
                 AppDatabase.getInstance(this).universityDao().delete();
 
-                URL url = new URL(ENDPOINT_RUG + "/bootstrap/reset");
+                URL url = new URL(TestConfiguration.ENDPOINT_RUG + "/bootstrap/reset");
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestProperty("Accept", "application/json");
                 urlConnection.setRequestProperty("Content-Type", "application/json");
@@ -168,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
 
                 Log.d("STUDYBITS", "Response code: " + urlConnection.getResponseCode());
 
-                url = new URL(ENDPOINT_GENT + "/bootstrap/reset");
+                url = new URL(TestConfiguration.ENDPOINT_GENT + "/bootstrap/reset");
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestProperty("Accept", "application/json");
                 urlConnection.setRequestProperty("Content-Type", "application/json");
@@ -185,45 +187,8 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public static String createPoolLedgerConfig(String testPoolIP, String poolName) throws IOException, InterruptedException, ExecutionException, IndyException {
-        File genesisTxnFile = createGenesisTxnFile("temp.txn", testPoolIP);
-        PoolJSONParameters.CreatePoolLedgerConfigJSONParameter createPoolLedgerConfigJSONParameter = new PoolJSONParameters.CreatePoolLedgerConfigJSONParameter(genesisTxnFile.getAbsolutePath());
-        Pool.createPoolLedgerConfig(poolName, createPoolLedgerConfigJSONParameter.toJson()).get();
-        return poolName;
-    }
-
-    public static String createPoolLedgerConfig(String testPoolIP) throws IOException, InterruptedException, ExecutionException, IndyException {
-        return createPoolLedgerConfig(testPoolIP, "default_pool");
-    }
-
-    private static File createGenesisTxnFile(String filename, String testPoolIp) throws IOException {
-        String path = getTmpPath(filename);
-        Log.d("STUDYBITS", "Writing genesis to file " + path);
-        if (testPoolIp == null) {
-            testPoolIp = getTestPoolIP();
-        }
-
-        String testClientIp = testPoolIp;
-
-        String[] defaultTxns = new String[]{String.format("{\"data\":{\"alias\":\"Node1\",\"blskey\":\"4N8aUNHSgjQVgkpm8nhNEfDf6txHznoYREg9kirmJrkivgL4oSEimFF6nsQ6M41QvhM2Z33nves5vfSn9n1UwNFJBYtWVnHYMATn76vLuL3zU88KyeAYcHfsih3He6UHcXDxcaecHVz6jhCYz1P2UZn2bDVruL5wXpehgBfBaLKm3Ba\",\"client_ip\":\"%s\",\"client_port\":9702,\"node_ip\":\"%s\",\"node_port\":9701,\"services\":[\"VALIDATOR\"]},\"dest\":\"Gw6pDLhcBcoQesN72qfotTgFa7cbuqZpkX3Xo6pLhPhv\",\"identifier\":\"Th7MpTaRZVRYnPiabds81Y\",\"txnId\":\"fea82e10e894419fe2bea7d96296a6d46f50f93f9eeda954ec461b2ed2950b62\",\"type\":\"0\"}", testClientIp, testPoolIp), String.format("{\"data\":{\"alias\":\"Node2\",\"blskey\":\"37rAPpXVoxzKhz7d9gkUe52XuXryuLXoM6P6LbWDB7LSbG62Lsb33sfG7zqS8TK1MXwuCHj1FKNzVpsnafmqLG1vXN88rt38mNFs9TENzm4QHdBzsvCuoBnPH7rpYYDo9DZNJePaDvRvqJKByCabubJz3XXKbEeshzpz4Ma5QYpJqjk\",\"client_ip\":\"%s\",\"client_port\":9704,\"node_ip\":\"%s\",\"node_port\":9703,\"services\":[\"VALIDATOR\"]},\"dest\":\"8ECVSk179mjsjKRLWiQtssMLgp6EPhWXtaYyStWPSGAb\",\"identifier\":\"EbP4aYNeTHL6q385GuVpRV\",\"txnId\":\"1ac8aece2a18ced660fef8694b61aac3af08ba875ce3026a160acbc3a3af35fc\",\"type\":\"0\"}", testClientIp, testPoolIp), String.format("{\"data\":{\"alias\":\"Node3\",\"blskey\":\"3WFpdbg7C5cnLYZwFZevJqhubkFALBfCBBok15GdrKMUhUjGsk3jV6QKj6MZgEubF7oqCafxNdkm7eswgA4sdKTRc82tLGzZBd6vNqU8dupzup6uYUf32KTHTPQbuUM8Yk4QFXjEf2Usu2TJcNkdgpyeUSX42u5LqdDDpNSWUK5deC5\",\"client_ip\":\"%s\",\"client_port\":9706,\"node_ip\":\"%s\",\"node_port\":9705,\"services\":[\"VALIDATOR\"]},\"dest\":\"DKVxG2fXXTU8yT5N7hGEbXB3dfdAnYv1JczDUHpmDxya\",\"identifier\":\"4cU41vWW82ArfxJxHkzXPG\",\"txnId\":\"7e9f355dffa78ed24668f0e0e369fd8c224076571c51e2ea8be5f26479edebe4\",\"type\":\"0\"}", testClientIp, testPoolIp), String.format("{\"data\":{\"alias\":\"Node4\",\"blskey\":\"2zN3bHM1m4rLz54MJHYSwvqzPchYp8jkHswveCLAEJVcX6Mm1wHQD1SkPYMzUDTZvWvhuE6VNAkK3KxVeEmsanSmvjVkReDeBEMxeDaayjcZjFGPydyey1qxBHmTvAnBKoPydvuTAqx5f7YNNRAdeLmUi99gERUU7TD8KfAa6MpQ9bw\",\"client_ip\":\"%s\",\"client_port\":9708,\"node_ip\":\"%s\",\"node_port\":9707,\"services\":[\"VALIDATOR\"]},\"dest\":\"4PS3EDQ3dW1tci1Bp6543CfuuebjFrg36kLAUcskGfaA\",\"identifier\":\"TWwCRQRZ2ZHMJFn9TzLp7W\",\"txnId\":\"aa5e817d7cc626170eca175822029339a444eb0ee8f0bd20d3b0b76e566fb008\",\"type\":\"0\"}", testClientIp, testPoolIp)};
-        File file = new File(path);
-        FileUtils.forceMkdirParent(file);
-        FileWriter fw = new FileWriter(file);
-        String[] var6 = defaultTxns;
-        int var7 = defaultTxns.length;
-
-        for(int var8 = 0; var8 < var7; ++var8) {
-            String defaultTxn = var6[var8];
-            fw.write(defaultTxn);
-            fw.write("\n");
-        }
-
-        fw.close();
-        return file;
-    }
-
     static MessageEnvelope postAndReturnMessage(MessageEnvelope message) throws IOException {
-        URL url = new URL(ENDPOINT_RUG + "/agent/message");
+        URL url = new URL(TestConfiguration.ENDPOINT_RUG + "/agent/message");
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         urlConnection.setRequestProperty("Accept", "application/json");
         urlConnection.setRequestProperty("Content-Type", "application/json");
@@ -240,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     static MessageEnvelope login() throws IOException {
-        URL url = new URL(ENDPOINT_RUG + "/agent/login/12345678");
+        URL url = new URL(TestConfiguration.ENDPOINT_RUG + "/agent/login/12345678");
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         urlConnection.setRequestProperty("Accept", "application/json");
         urlConnection.setRequestProperty("Content-Type", "application/json");
@@ -250,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     static MessageEnvelope[] getCredentialOffers() throws IOException {
-        URL url = new URL(ENDPOINT_RUG + "/agent/credential_offer");
+        URL url = new URL(TestConfiguration.ENDPOINT_RUG + "/agent/credential_offer");
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         urlConnection.setRequestProperty("Accept", "application/json");
         urlConnection.setRequestProperty("Content-Type", "application/json");

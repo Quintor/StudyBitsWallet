@@ -27,6 +27,7 @@ import nl.quintor.studybits.indy.wrapper.IndyPool;
 import nl.quintor.studybits.indy.wrapper.IndyWallet;
 import nl.quintor.studybits.studybitswallet.IndyClient;
 import nl.quintor.studybits.studybitswallet.R;
+import nl.quintor.studybits.studybitswallet.TestConfiguration;
 import nl.quintor.studybits.studybitswallet.room.AppDatabase;
 import nl.quintor.studybits.studybitswallet.room.entity.University;
 
@@ -47,7 +48,6 @@ public class CredentialFragment extends Fragment {
     protected IndyPool indyPool;
     protected IndyWallet studentWallet;
 
-    public static final String STUDENT_DID = "Xepuw1Y1k9DpvoSvZaoVJr";
 
     @Override
     public void onResume() {
@@ -59,7 +59,7 @@ public class CredentialFragment extends Fragment {
         try {
             if (indyPool == null || studentWallet == null) {
                 indyPool = new IndyPool("testPool");
-                studentWallet = IndyWallet.open(indyPool, "student_wallet", STUDENT_DID);
+                studentWallet = IndyWallet.open(indyPool, "student_wallet", TestConfiguration.STUDENT_SEED, TestConfiguration.STUDENT_DID);
             }
         } catch (IndyException | ExecutionException | InterruptedException | JsonProcessingException e) {
             Log.e("STUDYBITS", "Exception on resume " + e.getMessage());
