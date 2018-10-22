@@ -30,6 +30,8 @@ import nl.quintor.studybits.studybitswallet.WalletActivity;
 import nl.quintor.studybits.studybitswallet.room.AppDatabase;
 import nl.quintor.studybits.studybitswallet.room.entity.University;
 
+import static nl.quintor.studybits.studybitswallet.TestConfiguration.STUDENT_SECRET_NAME;
+
 public class CredentialOfferViewModel extends AndroidViewModel {
     private final MutableLiveData<List<CredentialOrOffer>> credentialOffers = new MutableLiveData<>();
     private final MutableLiveData<List<CredentialInfo>> credentials = new MutableLiveData<>();
@@ -39,7 +41,7 @@ public class CredentialOfferViewModel extends AndroidViewModel {
     }
 
     public void initCredentials(IndyWallet indyWallet) {
-        Prover prover = new Prover(indyWallet, WalletActivity.STUDENT_SECRET_NAME);
+        Prover prover = new Prover(indyWallet, STUDENT_SECRET_NAME);
 
         try {
             credentials.setValue(prover.findAllCredentials().get());

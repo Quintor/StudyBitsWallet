@@ -51,6 +51,8 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="nl.quintor.studybits.studybitswallet.MainActivity" />
         </activity>
+        <uses-library android:name="android.test.runner"
+            android:required="false" />
     </application>
 
 </manifest>

@@ -45,7 +45,7 @@ public class IndyClient {
     public void acceptCredentialOffer(CredentialOffer credentialOffer) {
         try {
             Log.d("STUDYBITS", "Accepting credential offer");
-            Prover studentProver = new Prover(studentWallet, WalletActivity.STUDENT_SECRET_NAME);
+            Prover studentProver = new Prover(studentWallet, TestConfiguration.STUDENT_SECRET_NAME);
 
             CredentialRequest credentialRequest = studentProver.createCredentialRequest(credentialOffer).get();
             MessageEnvelope credentialRequestEnvelope = MessageEnvelope.fromAuthcryptable(credentialRequest, IndyMessageTypes.CREDENTIAL_REQUEST, studentWallet);
@@ -82,7 +82,7 @@ public class IndyClient {
     public MessageEnvelope fulfillExchangePosition(ExchangePosition exchangePosition) throws IndyException, IOException, ExecutionException, InterruptedException {
         ProofRequest proofRequest = extractProofRequest(exchangePosition);
 
-        Prover prover = new Prover(studentWallet, WalletActivity.STUDENT_SECRET_NAME);
+        Prover prover = new Prover(studentWallet, TestConfiguration.STUDENT_SECRET_NAME);
         Map<String, String> values = new HashMap<>();
 
         Proof proof = prover.fulfillProofRequest(proofRequest, values).get();
