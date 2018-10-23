@@ -2,7 +2,7 @@
 set -e 
 sh download-deps.sh
 ip -o addr show
-export TEST_POOL_IP=$(ip -o addr show | grep -E "wlp2s0.*inet " | grep -E -o  -e "[0-9]*(\.[0-9]*){3}" | head -1)
+export TEST_POOL_IP=$(ip -o addr show | grep -E "eth0.*inet " | grep -E -o  -e "[0-9]*(\.[0-9]*){3}" | head -1)
 echo "LOCAL IP: $TEST_POOL_IP"
 
 echo "ENDPOINT_IP=\"$TEST_POOL_IP\"" > gradle.properties
@@ -20,6 +20,7 @@ done
 
 echo "Dockers are booted"
 
+android-wait-for-emulator
 
 cd ..
 ./gradlew connectedCheck
