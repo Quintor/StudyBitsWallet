@@ -10,7 +10,12 @@ android:
 
     # The SDK version used to compile your project
     - android-28
-    - android-24
+
+    # Image for emulator
+    - sys-img-x86-android-24
+
+
+
       
 sudo: required
 
