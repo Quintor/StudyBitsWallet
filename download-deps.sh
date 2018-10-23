@@ -1,7 +1,7 @@
 #!/bin/sh
 
 LIBINDY_VERSION=1.6.6
-ZIPFILE="libindy_android_x_86_$LIBINDY_VERSION.zip"
+ZIPFILE="libindy_android_x86_$LIBINDY_VERSION.zip"
 
 mkdir -p build
 if [ ! -f "build/libindy_x86" ]; then
