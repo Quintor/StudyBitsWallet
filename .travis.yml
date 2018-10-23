@@ -24,9 +24,6 @@ addons:
       
 sudo: required
 
-services:
-  - docker
-
 
 # Emulator Management: Create, Start and Wait
 before_script:
