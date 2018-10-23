@@ -30,5 +30,5 @@ before_script:
   - android list targets
   - cat $(which android-wait-for-emulator)
   - echo no | android create avd --force -n test -t android-24 --abi armeabi-v7a
-  - emulator -avd test -no-audio -no-window &
+  - emulator -avd test  -no-window &
   - android-wait-for-emulator
