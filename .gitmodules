@@ -1,4 +1,4 @@
 
 [submodule "StudyBits"]
 	path = StudyBits
-	url = git@github.com:Quintor/StudyBits.git
+	url = https://github.com/Quintor/StudyBits.git
