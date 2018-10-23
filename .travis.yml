@@ -17,7 +17,10 @@ android:
     - sys-img-armeabi-v7a-android-24
 
 
-
+addons:
+  apt:
+    packages:
+      - iproute2
       
 sudo: required
 
