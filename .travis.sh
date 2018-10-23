@@ -14,8 +14,9 @@ cd StudyBits
 docker build -t quindy:latest quindy/
 docker run -v $HOME/.m2/:/root/m2 quindy:latest sh -c "mvn install -DskipTests && cp -r /root/.m2/repository /root/m2"
 
+cd ..
 ./gradlew assemble
-
+cd StudyBits
 docker-compose up -d --build --force-recreate pool university-agent-rug university-agent-gent
 
 
