@@ -2,13 +2,15 @@
 set -e 
 sh download-deps.sh
 
-./gradlew assemble
 
 ip -o addr show
 export TEST_POOL_IP=$(ip -o addr show | grep -E "eth0.*inet " | grep -E -o  -e "[0-9]*(\.[0-9]*){3}" | head -1)
 echo "LOCAL IP: $TEST_POOL_IP"
 
 echo "ENDPOINT_IP=\"$TEST_POOL_IP\"" > gradle.properties
+
+./gradlew assemble
+
 cd StudyBits
 docker build -t quindy:latest quindy/
 docker-compose up -d --build --force-recreate pool university-agent-rug university-agent-gent
