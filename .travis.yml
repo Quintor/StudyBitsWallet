@@ -21,6 +21,7 @@ addons:
   apt:
     packages:
       - iproute2
+      - docker-ce
       
 sudo: required
 
