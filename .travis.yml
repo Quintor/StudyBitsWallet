@@ -17,6 +17,9 @@ android:
     # Image for emulator
     - sys-img-armeabi-v7a-google_apis-24
 
+    - extra
+    - add-on
+
 
 addons:
   apt:
