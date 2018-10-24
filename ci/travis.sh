@@ -14,7 +14,7 @@ cd ..
 cd StudyBits
 docker-compose up -d --build --force-recreate pool university-agent-rug university-agent-gent
 echo "Ran docker-compose up"
-
+android-wait-for-emulator
 adb shell input keyevent 82 &
 
 echo "Waiting for dockers to start"
