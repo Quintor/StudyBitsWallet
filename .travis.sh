@@ -19,6 +19,8 @@ cd ..
 cd StudyBits
 docker-compose up -d --build --force-recreate pool university-agent-rug university-agent-gent
 
+android-wait-for-emulator
+adb shell input keyevent 82 &
 
 echo "Watining for dockers to start"
 while [ -n "$(docker ps -a | grep starting)" ]; 
@@ -28,7 +30,6 @@ done
 
 echo "Dockers are booted"
 
-android-wait-for-emulator
 
 cd ..
 ./gradlew connectedCheck
