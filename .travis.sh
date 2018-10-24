@@ -31,5 +31,6 @@ done
 echo "Dockers are booted"
 
 
+adb shell input keyevent 82 &
 cd ..
 ./gradlew connectedCheck
