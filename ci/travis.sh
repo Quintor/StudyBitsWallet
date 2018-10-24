@@ -16,12 +16,10 @@ docker-compose up -d --build --force-recreate pool university-agent-rug universi
 echo "Ran docker-compose up"
 
 android-wait-for-emulator
-adb shell settings put global window_animation_scale 0 &
-adb shell settings put global transition_animation_scale 0 &
-adb shell settings put global animator_duration_scale 0 &
+echo "waited for emulator"
 adb shell input keyevent 82 &
 
-echo "Watining for dockers to start"
+echo "Waiting for dockers to start"
 while [ -n "$(docker ps -a | grep starting)" ]; 
 do
     sleep 1
