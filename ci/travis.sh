@@ -13,6 +13,7 @@ cd ..
 ./gradlew assemble
 cd StudyBits
 docker-compose up -d --build --force-recreate pool university-agent-rug university-agent-gent
+echo "Ran docker-compose up"
 
 android-wait-for-emulator
 adb shell settings put global window_animation_scale 0 &
