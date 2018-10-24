@@ -16,6 +16,9 @@ docker-compose up -d --build --force-recreate pool university-agent-rug universi
 if [ -n "$IN_TRAVIS" ]; then
     android-wait-for-emulator
 fi
+adb shell settings put global window_animation_scale 0 &
+adb shell settings put global transition_animation_scale 0 &
+adb shell settings put global animator_duration_scale 0 &
 adb shell input keyevent 82 &
 
 echo "Watining for dockers to start"
