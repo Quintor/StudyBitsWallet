@@ -15,7 +15,7 @@ android:
     - android-24
 
     # Image for emulator
-    - sys-img-armeabi-v7a-android-24
+    - sys-img-armeabi-v7a-google_apis-24
 
 
 addons:
@@ -28,6 +28,7 @@ sudo: required
 
 env:
   - DOCKER_COMPOSE_VERSION=1.22.0
+  - IN_TRAVIS=true
 
 # Update docker-compose Emulator Management: Create, Start and Wait
 before_script:
@@ -36,9 +37,7 @@ before_script:
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
 
-  - android list targets
-  - cat $(which android-wait-for-emulator)
-  - echo no | android create avd --force -n test -t android-24 --abi armeabi-v7a
-  - emulator -avd test  -no-window &
-
-script: ./.travis.sh
+script:
+  - export TEST_POOL_IP=$(ip -o addr show | grep -E "eth0.*inet " | grep -E -o  -e "[0-9]*(\.[0-9]*){3}" | head -1)
+  - ci/create-emulator.sh
+  - ci/travis.sh

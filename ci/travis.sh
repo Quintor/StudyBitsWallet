@@ -1,12 +1,7 @@
 #!/bin/bash
 set -e 
-sh download-deps.sh
-
-
-ip -o addr show
-export TEST_POOL_IP=$(ip -o addr show | grep -E "eth0.*inet " | grep -E -o  -e "[0-9]*(\.[0-9]*){3}" | head -1)
+sh ci/download-deps.sh
 echo "LOCAL IP: $TEST_POOL_IP"
-
 echo "ENDPOINT_IP=\"$TEST_POOL_IP\"" > gradle.properties
 
 
@@ -18,8 +13,9 @@ cd ..
 ./gradlew assemble
 cd StudyBits
 docker-compose up -d --build --force-recreate pool university-agent-rug university-agent-gent
-
-android-wait-for-emulator
+if [ -n "$IN_TRAVIS" ]; then
+    android-wait-for-emulator
+fi
 adb shell input keyevent 82 &
 
 echo "Watining for dockers to start"
