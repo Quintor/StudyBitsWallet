@@ -44,7 +44,7 @@ script:
   - ci/travis.sh
   - travis_wait docker-compose -f StudyBits/docker-compose.yml up -d --build --force-recreate pool university-agent-rug university-agent-gent
   - sh -c "ps aux --sort -rss | head -20"
-  - android-wait-for-emulator
+  - travis_wait 60 android-wait-for-emulator
   - sh -c "ps aux --sort -rss | head -20"
   - ci/wait-for-dockers.sh
   - sh -c "ps aux --sort -rss | head -20"
