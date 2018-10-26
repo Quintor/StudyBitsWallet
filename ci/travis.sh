@@ -14,13 +14,13 @@ cd ..
 cd StudyBits
 docker-compose up -d --build --force-recreate pool university-agent-rug university-agent-gent
 echo "Ran docker-compose up"
-#android-wait-for-emulator
-adb shell input keyevent 82 &
+travis_wait android-wait-for-emulator
+echo "Waited for emulator"
+travis_wait adb shell input keyevent 82 &
 
 echo "Waiting for dockers to start"
 while [ -n "$(docker ps -a | grep starting)" ]; 
 do
-    free -m
     echo $(docker ps -a | grep starting)
     sleep 5
 done 
@@ -30,4 +30,17 @@ echo "Dockers are booted"
 
 adb shell input keyevent 82 &
 cd ..
-./gradlew connectedCheck
+echo "repeating to check if we get here due to log buffer issues"
+echo "Starting test"
+echo "Starting test"
+echo "Starting test"
+echo "Starting test"
+echo "Starting test"
+echo "Starting test"
+echo "Starting test"
+echo "Starting test"
+echo "Starting test"
+echo "Starting test"
+echo "Starting test"
+echo "Starting test"
+travis_wait 30 ./gradlew connectedCheck
