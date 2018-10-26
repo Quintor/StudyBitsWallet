@@ -37,6 +37,7 @@ before_script:
   - sudo mv docker-compose /usr/local/bin
 
 script:
+  - ci/diagnose.sh
   - sh -c "ps aux --sort -rss | head -20"
   - export TEST_POOL_IP=$(ip -o addr show | grep -E "eth0.*inet " | grep -E -o  -e "[0-9]*(\.[0-9]*){3}" | head -1)
   - android list targets
