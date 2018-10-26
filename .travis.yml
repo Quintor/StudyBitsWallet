@@ -41,3 +41,12 @@ script:
   - android list targets
   - ci/create-emulator.sh
   - ci/travis.sh
+  - travis_wait docker-compose -f StudyBits/docker-compose.yml up -d --build --force-recreate pool university-agent-rug university-agent-gent
+  - ps aux --sort -rss | head -20
+  - android-wait-for-emulator
+  - ps aux --sort -rss | head -20
+  - ci/wait-for-dockers.sh
+  - ps aux --sort -rss | head -20
+  - adb shell input keyevent 82 &
+  - travis_wait ./gradlew connectedCheck
+
