@@ -15,7 +15,7 @@ android:
     - android-24
 
     # Image for emulator
-    - sys-img-armeabi-v7a-google_apis-24
+    - sys-img-x86-android-24
 
     - extra
     - add-on
