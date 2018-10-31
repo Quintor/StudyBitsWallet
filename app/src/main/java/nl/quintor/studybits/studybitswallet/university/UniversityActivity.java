@@ -55,7 +55,7 @@ public class UniversityActivity extends WalletActivity {
 
         final UniversityActivity activity = this;
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.university_fab);
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
