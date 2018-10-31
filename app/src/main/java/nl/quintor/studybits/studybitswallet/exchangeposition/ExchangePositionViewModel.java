@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import ch.qos.logback.core.net.SocketConnector;
+import nl.quintor.studybits.indy.wrapper.message.MessageEnvelopeCodec;
 import nl.quintor.studybits.indy.wrapper.util.AsyncUtil;
 import nl.quintor.studybits.studybitswallet.AgentClient;
 import nl.quintor.studybits.studybitswallet.room.entity.University;
@@ -23,10 +24,10 @@ public class ExchangePositionViewModel extends AndroidViewModel {
         super(application);
     }
 
-    public void init(List<University> universities) {
+    public void init(List<University> universities, MessageEnvelopeCodec codec) {
         List<ExchangePosition> newExchangePositions =  universities
                 .stream()
-                .map(AsyncUtil.wrapException(university -> new AgentClient(university.getEndpoint()).getExchangePositions(university)))
+                .map(AsyncUtil.wrapException(university -> new AgentClient(university.getEndpoint()).getExchangePositions(university, codec)))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 

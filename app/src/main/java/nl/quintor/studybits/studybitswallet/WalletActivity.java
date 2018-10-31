@@ -11,11 +11,12 @@ import java.util.concurrent.ExecutionException;
 
 import nl.quintor.studybits.indy.wrapper.IndyPool;
 import nl.quintor.studybits.indy.wrapper.IndyWallet;
+import nl.quintor.studybits.indy.wrapper.message.MessageEnvelopeCodec;
 
 public abstract class WalletActivity extends AppCompatActivity {
     protected static IndyPool indyPool;
     protected static IndyWallet studentWallet;
-
+    protected static MessageEnvelopeCodec studentCodec;
 
     @Override
     protected void onResume() {
@@ -23,6 +24,7 @@ public abstract class WalletActivity extends AppCompatActivity {
         try {
             indyPool = new IndyPool("testPool");
             studentWallet = IndyWallet.open(indyPool, "student_wallet", TestConfiguration.STUDENT_SEED, TestConfiguration.STUDENT_DID);
+            studentCodec = new MessageEnvelopeCodec(studentWallet);
         } catch (IndyException | ExecutionException | InterruptedException | JsonProcessingException e) {
             Log.e("STUDYBITS", "Exception on resume " + e.getMessage());
             e.printStackTrace();

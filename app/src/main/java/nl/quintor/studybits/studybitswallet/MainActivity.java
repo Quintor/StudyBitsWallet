@@ -46,6 +46,7 @@ import nl.quintor.studybits.indy.wrapper.util.JSONUtil;
 import nl.quintor.studybits.indy.wrapper.util.PoolUtils;
 import nl.quintor.studybits.studybitswallet.credential.CredentialActivity;
 import nl.quintor.studybits.studybitswallet.exchangeposition.ExchangePositionActivity;
+import nl.quintor.studybits.studybitswallet.exchangeposition.StudyBitsMessageTypes;
 import nl.quintor.studybits.studybitswallet.room.AppDatabase;
 import nl.quintor.studybits.studybitswallet.university.UniversityActivity;
 
@@ -157,6 +158,7 @@ public class MainActivity extends AppCompatActivity {
                 indyPool.close();
 
                 IndyMessageTypes.init();
+                StudyBitsMessageTypes.init();
 
                 AppDatabase.getInstance(this).universityDao().delete();
 

@@ -32,9 +32,11 @@ import java.util.stream.Collectors;
 import nl.quintor.studybits.indy.wrapper.IndyPool;
 import nl.quintor.studybits.indy.wrapper.IndyWallet;
 import nl.quintor.studybits.indy.wrapper.Prover;
-import nl.quintor.studybits.indy.wrapper.dto.AuthcryptedMessage;
+import nl.quintor.studybits.indy.wrapper.dto.EncryptedMessage;
 import nl.quintor.studybits.indy.wrapper.dto.ProofRequest;
+import nl.quintor.studybits.indy.wrapper.message.IndyMessageTypes;
 import nl.quintor.studybits.indy.wrapper.message.MessageEnvelope;
+import nl.quintor.studybits.indy.wrapper.message.MessageEnvelopeCodec;
 import nl.quintor.studybits.indy.wrapper.util.AsyncUtil;
 import nl.quintor.studybits.studybitswallet.AgentClient;
 import nl.quintor.studybits.studybitswallet.IndyClient;
@@ -59,6 +61,7 @@ public class ExchangePositionFragment extends Fragment {
 
     protected IndyPool indyPool;
     protected IndyWallet studentWallet;
+    protected MessageEnvelopeCodec studentCodec;
 
     @Override
     public void onResume() {
@@ -71,6 +74,7 @@ public class ExchangePositionFragment extends Fragment {
             if (indyPool == null || studentWallet == null) {
                 indyPool = new IndyPool("testPool");
                 studentWallet = IndyWallet.open(indyPool, "student_wallet", TestConfiguration.STUDENT_SEED, TestConfiguration.STUDENT_DID);
+                studentCodec = new MessageEnvelopeCodec(studentWallet);
             }
         } catch (IndyException | ExecutionException | InterruptedException | JsonProcessingException e) {
             Log.e("STUDYBITS", "Exception on resume " + e.getMessage());
@@ -133,14 +137,14 @@ public class ExchangePositionFragment extends Fragment {
 
             final ExchangePositionViewModel exchangePositionViewModel = ViewModelProviders.of(this)
                     .get(ExchangePositionViewModel.class);
-
+            initWallet();
             refreshPositions();
 
             exchangePositionViewModel.getExchangePositions().observe(this, exchangePositions -> {
                 recyclerView.setAdapter(new MyExchangePositionRecyclerViewAdapter(exchangePositions, exchangePosition -> {
                     try {
                         IndyClient indyClient = new IndyClient(studentWallet, AppDatabase.getInstance(getContext()));
-                        ProofRequest proofRequest = indyClient.extractProofRequest(exchangePosition);
+                        ProofRequest proofRequest = exchangePosition.getProofRequest();
 
                         AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
                                 .setMessage("Requested attributes: " + proofRequest.getRequestedAttributes().entrySet().stream()
@@ -148,7 +152,7 @@ public class ExchangePositionFragment extends Fragment {
                                 .setPositiveButton("Send", (dialogInterface, i) -> {
                                     try {
                                         MessageEnvelope proofEnvelope = indyClient.fulfillExchangePosition(exchangePosition);
-                                        new AgentClient(exchangePosition.getUniversity().getEndpoint()).postAndReturnMessage(proofEnvelope, studentWallet);
+                                        new AgentClient(exchangePosition.getUniversity().getEndpoint()).postMessage(proofEnvelope);
                                     } catch (Exception e) {
                                         Log.e("STUDYBITS", "Exception while fulfilling exchange position (sending)");
                                         e.printStackTrace();
@@ -161,7 +165,7 @@ public class ExchangePositionFragment extends Fragment {
                                 .create();
 
                         alertDialog.show();
-                    } catch (IndyException  | ExecutionException | InterruptedException e) {
+                    } catch (Exception e) {
                         Log.e("STUDYBITS", "Exception while fulfilling exchange position");
                         e.printStackTrace();
                     }
@@ -180,7 +184,7 @@ public class ExchangePositionFragment extends Fragment {
                 .get(ExchangePositionViewModel.class);
 
         List<University> universityList = AppDatabase.getInstance(getContext()).universityDao().getStatic();
-        exchangePositionViewModel.init(universityList);
+        exchangePositionViewModel.init(universityList, studentCodec);
     }
 
 
