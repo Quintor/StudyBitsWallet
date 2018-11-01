@@ -57,4 +57,4 @@ script:
   - adb shell input keyevent 82 &
 
   - adb logcat *:S STUDYBITS:V TestRunner:V & 
-  - traivs_wait ./gradlew connectedCheck
+  - travis_wait ./gradlew connectedCheck
