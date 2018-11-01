@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 function download_dep_for_arch() {
     echo "ARCH: $1"
