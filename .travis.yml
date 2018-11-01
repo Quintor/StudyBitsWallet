@@ -50,5 +50,8 @@ script:
   - sh -c "ps aux --sort -rss | head -20"
   - ci/wait-for-dockers.sh
   - sh -c "ps aux --sort -rss | head -20"
+  - adb shell settings put global window_animation_scale 0 &
+  - adb shell settings put global transition_animation_scale 0 &
+  - adb shell settings put global animator_duration_scale 0 &
   - adb shell input keyevent 82 &
-  - travis_wait ./gradlew connectedCheck
+  - travis_wait ./gradlew connectedCheck --info
