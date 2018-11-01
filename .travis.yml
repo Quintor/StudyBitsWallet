@@ -15,7 +15,7 @@ android:
     - android-24
 
     # Image for emulator
-    - sys-img-x86-android-24
+    - sys-img-armeabi-v7a-android-24
 
     - extra
     - add-on
@@ -53,4 +53,3 @@ script:
   - sh -c "ps aux --sort -rss | head -20"
   - adb shell input keyevent 82 &
   - travis_wait ./gradlew connectedCheck
-
