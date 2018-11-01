@@ -38,12 +38,11 @@ android {
         exclude 'META-INF/ASL2.0'
     }
 
+
     useLibrary 'android.test.runner'
     useLibrary 'android.test.base'
     useLibrary 'android.test.mock'
 }
-
-
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
