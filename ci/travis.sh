@@ -1,4 +1,5 @@
 #!/bin/bash
+
 set -e 
 bash ci/download-deps.sh
 echo "LOCAL IP: $TEST_POOL_IP"
