@@ -55,4 +55,4 @@ script:
   - adb shell settings put global transition_animation_scale 0 &
   - adb shell settings put global animator_duration_scale 0 &
   - adb shell input keyevent 82 &
-  - travis_wait ./gradlew connectedCheck --info
+  - travis_wait ci/run-test-with-logging.sh

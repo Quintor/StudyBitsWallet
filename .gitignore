@@ -10,4 +10,5 @@
 /captures
 .externalNativeBuild
 
+app/src/main/jniLibs/x86_64/libindy.so
 gradle.properties
