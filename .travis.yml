@@ -52,4 +52,5 @@ script:
   - ci/wait-for-dockers.sh
   - sh -c "ps aux --sort -rss | head -20"
   - adb shell input keyevent 82 &
+  - adb logcat *:S STUDYBITS:V TestRunner:V &
   - travis_wait ./gradlew connectedCheck --stacktrace

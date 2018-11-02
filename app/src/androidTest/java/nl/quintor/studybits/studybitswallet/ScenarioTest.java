@@ -5,6 +5,7 @@ import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.rule.GrantPermissionRule;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,11 +38,16 @@ public class ScenarioTest {
 
     @Test
     public void fullScenarioTest() {
+        Log.d("STUDYBITS", "Starting test");
         // Reset
         onView(withId(R.id.fab))
                 .perform(click());
+        Log.d("STUDYBITS", "Clicked reset");
+
         onView(allOf(withId(android.support.design.R.id.snackbar_text), withText("Successfully reset")))
                 .check(matches(isDisplayed()));
+
+        Log.d("STUDYBITS", "Successfully reset");
 
         // Navigate to universities
 
