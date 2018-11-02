@@ -19,6 +19,7 @@ android:
 
     - extra
     - add-on
+    - extra-android-support
 
 
 addons:
