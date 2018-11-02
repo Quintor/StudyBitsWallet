@@ -1,6 +1,7 @@
 package nl.quintor.studybits.studybitswallet;
 
 import android.Manifest;
+import android.support.test.espresso.matcher.RootMatchers;
 import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.rule.GrantPermissionRule;
@@ -41,6 +42,7 @@ public class ScenarioTest {
         Log.d("STUDYBITS", "Starting test");
         // Reset
         onView(withId(R.id.fab))
+                .inRoot(RootMatchers.isFocusable())
                 .perform(click());
         Log.d("STUDYBITS", "Clicked reset");
 
