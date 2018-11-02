@@ -52,4 +52,4 @@ script:
   - ci/wait-for-dockers.sh
   - sh -c "ps aux --sort -rss | head -20"
   - adb shell input keyevent 82 &
-  - travis_wait ./gradlew connectedCheck
+  - travis_wait ./gradlew connectedCheck --stacktrace
