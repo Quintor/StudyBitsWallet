@@ -5,9 +5,7 @@ import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.rule.GrantPermissionRule;
 import android.support.test.runner.AndroidJUnit4;
-import android.view.WindowManager;
 
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,27 +35,11 @@ public class ScenarioTest {
     @Rule
     public GrantPermissionRule grantPermissionRule = GrantPermissionRule.grant(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE);
 
-    @Before
-    public void unlockScreen() {
-        MainActivity activity = mainActivityRule.getActivity();
-        Runnable wakeUpDevice = new Runnable() {
-            public void run() {
-                activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
-                        WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
-                        WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            }
-        };
-        activity.runOnUiThread(wakeUpDevice);
-    }
-
     @Test
     public void fullScenarioTest() {
-        System.out.println("Test logging something");
         // Reset
         onView(withId(R.id.fab))
                 .perform(click());
-
-        System.out.println("Test logging more");
         onView(allOf(withId(android.support.design.R.id.snackbar_text), withText("Successfully reset")))
                 .check(matches(isDisplayed()));
 

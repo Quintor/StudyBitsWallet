@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e 
-bash ci/download-deps.sh
+sh ci/download-deps.sh
 echo "LOCAL IP: $TEST_POOL_IP"
 echo "ENDPOINT_IP=\"$TEST_POOL_IP\"" > gradle.properties
 

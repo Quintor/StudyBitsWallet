@@ -40,7 +40,6 @@ script:
   - sh -c "ps aux --sort -rss | head -20"
   - export TEST_POOL_IP=$(ip -o addr show | grep -E "eth0.*inet " | grep -E -o  -e "[0-9]*(\.[0-9]*){3}" | head -1)
   - android list targets
-  - docker pull ubuntu:16.04
   - ci/create-emulator.sh
   - adb shell getprop
   - ci/travis.sh
@@ -51,8 +50,5 @@ script:
   - sh -c "ps aux --sort -rss | head -20"
   - ci/wait-for-dockers.sh
   - sh -c "ps aux --sort -rss | head -20"
-  - adb shell settings put global window_animation_scale 0 &
-  - adb shell settings put global transition_animation_scale 0 &
-  - adb shell settings put global animator_duration_scale 0 &
   - adb shell input keyevent 82 &
-  - travis_wait ./gradlew connectedCheck --info
+  - travis_wait ./gradlew connectedCheck
