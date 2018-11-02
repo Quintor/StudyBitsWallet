@@ -59,7 +59,7 @@ public class ScenarioTest {
     public void fullScenarioTest() {
         Log.d("STUDYBITS", "Starting test");
         // Reset
-        onView(withId(R.id.fab))
+        onView(withText("AHADSHAFFHDHFDS"))
                 .inRoot(RootMatchers.isFocusable())
                 .perform(click());
         Log.d("STUDYBITS", "Clicked reset");
