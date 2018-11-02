@@ -8,7 +8,7 @@ android {
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "nl.quintor.studybits.studybitswallet.ExampleTestRunner"
         buildConfigField "String", "ENDPOINT_IP", ENDPOINT_IP
     }
     compileOptions {
@@ -68,8 +68,11 @@ dependencies {
 
     testImplementation 'junit:junit:4.12'
 
+    androidTestImplementation 'com.linkedin.testbutler:test-butler-library:1.4.0'
+
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test:rules:1.0.2'
 
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
 }

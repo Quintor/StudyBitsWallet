@@ -29,7 +29,7 @@ import static org.hamcrest.core.AllOf.allOf;
  *
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
-@RunWith(AndroidJUnit4.class)
+
 @LargeTest
 public class ScenarioTest {
 
@@ -59,7 +59,7 @@ public class ScenarioTest {
     public void fullScenarioTest() {
         Log.d("STUDYBITS", "Starting test");
         // Reset
-        onView(withText("AHADSHAFFHDHFDS"))
+        onView(withId(R.id.fab))
                 .inRoot(RootMatchers.isFocusable())
                 .perform(click());
         Log.d("STUDYBITS", "Clicked reset");
