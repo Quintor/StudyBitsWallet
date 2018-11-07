@@ -1,6 +1,7 @@
 package nl.quintor.studybits.studybitswallet;
 
 import android.Manifest;
+import android.support.test.espresso.IdlingPolicies;
 import android.support.test.espresso.matcher.RootMatchers;
 import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
@@ -13,6 +14,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.concurrent.TimeUnit;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.Espresso.pressBack;
@@ -53,6 +56,9 @@ public class ScenarioTest {
         };
         activity.runOnUiThread(wakeUpDevice);
         Log.d("STUDYBITS", "@Before/end");
+
+        IdlingPolicies.setMasterPolicyTimeout(180, TimeUnit.SECONDS);
+        IdlingPolicies.setIdlingResourceTimeout(180, TimeUnit.SECONDS);
     }
 
     @Test
