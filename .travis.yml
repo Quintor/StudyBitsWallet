@@ -53,5 +53,8 @@ script:
   - ci/wait-for-dockers.sh
   - sh -c "ps aux --sort -rss | head -20"
   - adb shell input keyevent 82 &
+  - adb root
+  - adb shell uiautomator dump /data/view.xml
+  - adb shell input touchscreen swipe 100 900 101 900
   - adb logcat *:S STUDYBITS:V TestRunner:V &
   - travis_wait ./gradlew connectedCheck --stacktrace
