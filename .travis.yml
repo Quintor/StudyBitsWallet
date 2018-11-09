@@ -43,7 +43,6 @@ script:
   - android list targets
   - docker pull ubuntu:16.04
   - ci/create-emulator.sh
-  - adb shell getprop
   - ci/travis.sh
   - adb shell getprop
   - travis_wait docker-compose -f StudyBits/docker-compose.yml up -d --build --force-recreate pool university-agent-rug university-agent-gent
