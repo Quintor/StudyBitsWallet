@@ -17,5 +17,3 @@ Android Wallet application for the StudyBits project.
 ## Running tests
 1. Follow the steps above
 2. Run `./gradlew connectedCheck`
-2. Run `./.travis.sh`
-
