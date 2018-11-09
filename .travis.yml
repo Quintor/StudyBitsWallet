@@ -41,7 +41,7 @@ script:
   - sh -c "ps aux --sort -rss | head -20"
   - export TEST_POOL_IP=$(ip -o addr show | grep -E "eth0.*inet " | grep -E -o  -e "[0-9]*(\.[0-9]*){3}" | head -1)
   - android list targets
-  - docker pull ubuntu:16.04
+  - docker pull ubuntu:16.04 #Prepulling the image to ensure that network issues happen early on in the build
   - ci/create-emulator.sh
   - ci/travis.sh
   - adb shell getprop
@@ -54,6 +54,6 @@ script:
   - adb shell input keyevent 82 &
   - adb root
   - adb shell uiautomator dump /data/view.xml
-  - adb shell cat /data/view.xml
-  - adb shell input touchscreen swipe 100 420 101 420
+  - adb shell cat /data/view.xml #The next line presses the "Close app" button on the dialog "Process system is not responding", freeing up the device
+  - adb shell input touchscreen swipe 100 420 101 420 
   - travis_wait ./gradlew connectedCheck --stacktrace
