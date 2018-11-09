@@ -44,18 +44,7 @@ public class ScenarioTest {
 
     @Before
     public void unlockScreen() {
-        Log.d("STUDYBITS", "@Before/start");
-        MainActivity activity = mainActivityRule.getActivity();
-        Runnable wakeUpDevice = new Runnable() {
-            public void run() {
-                Log.d("STUDYBITS", "@Before/runnable");
-                activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
-                        WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
-                        WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            }
-        };
-        activity.runOnUiThread(wakeUpDevice);
-        Log.d("STUDYBITS", "@Before/end");
+        Log.d("STUDYBITS", "Setting timeouts to 3 minutes");
 
         IdlingPolicies.setMasterPolicyTimeout(180, TimeUnit.SECONDS);
         IdlingPolicies.setIdlingResourceTimeout(180, TimeUnit.SECONDS);
@@ -66,7 +55,6 @@ public class ScenarioTest {
         Log.d("STUDYBITS", "Starting test");
         // Reset
         onView(withId(R.id.fab))
-                .inRoot(RootMatchers.isFocusable())
                 .perform(click());
         Log.d("STUDYBITS", "Clicked reset");
 
