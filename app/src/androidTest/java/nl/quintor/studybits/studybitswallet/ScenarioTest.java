@@ -43,7 +43,7 @@ public class ScenarioTest {
     public GrantPermissionRule grantPermissionRule = GrantPermissionRule.grant(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE);
 
     @Before
-    public void unlockScreen() {
+    public void setTimeouts() {
         Log.d("STUDYBITS", "Setting timeouts to 3 minutes");
 
         IdlingPolicies.setMasterPolicyTimeout(180, TimeUnit.SECONDS);

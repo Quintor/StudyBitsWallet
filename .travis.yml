@@ -36,19 +36,18 @@ script:
   - sh -c "ps aux --sort -rss | head -20"
   - export TEST_POOL_IP=$(ip -o addr show | grep -E "eth0.*inet " | grep -E -o  -e "[0-9]*(\.[0-9]*){3}" | head -1)
   - android list targets
-  - docker pull ubuntu:16.04 #Prepulling the image to ensure that network issues happen early on in the build
+  - docker pull ubuntu:16.04 # Prepulling the image to ensure that network issues happen early on in the build
   - ci/create-emulator.sh
-  - ci/travis.sh
-  - adb shell getprop
+  - ci/travis.sh # Rest of the commands are prefixed with travis_wait, because they might take long. This is a builtin and doesn't work in the script itself
   - travis_wait docker-compose -f StudyBits/docker-compose.yml up -d --build --force-recreate pool university-agent-rug university-agent-gent
   - sh -c "ps aux --sort -rss | head -20"
   - travis_wait 60 android-wait-for-emulator
   - sh -c "ps aux --sort -rss | head -20"
   - ci/wait-for-dockers.sh
   - sh -c "ps aux --sort -rss | head -20"
-  - adb shell input keyevent 82 &
+  - adb shell input keyevent 82 & # 82 is the special code for unlocking the screen
   - adb root
-  - adb shell uiautomator dump /data/view.xml
-  - adb shell cat /data/view.xml #The next line presses the "Close app" button on the dialog "Process system is not responding", freeing up the device
-  - adb shell input touchscreen swipe 100 420 101 420 
+  - adb shell uiautomator dump /data/view.xml # Dump the view to analyse if something goes wrong on startup
+  - adb shell cat /data/view.xml 
+  - adb shell input touchscreen swipe 100 420 101 420 # Presses the "Close app" button on the dialog "Process system is not responding", freeing up the device
   - travis_wait ./gradlew connectedCheck --stacktrace
