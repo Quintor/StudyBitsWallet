@@ -17,11 +17,6 @@ android:
     # Image for emulator
     - sys-img-armeabi-v7a-android-24
 
-    - extra
-    - add-on
-    - extra-android-support
-
-
 addons:
   apt:
     packages:
