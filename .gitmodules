@@ -1,3 +1,4 @@
-[submodule "quindy"]
-	path = quindy
-	url = https://github.com/Quintor/quindy.git
+
+[submodule "StudyBits"]
+	path = StudyBits
+	url = https://github.com/Quintor/StudyBits.git

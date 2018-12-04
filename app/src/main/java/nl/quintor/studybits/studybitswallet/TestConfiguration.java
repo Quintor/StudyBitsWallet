@@ -6,7 +6,7 @@ public class TestConfiguration {
     public static final String STUDENT_SECRET_NAME = "student_secret_name";
     public static final String STUDENT_SEED = "000000000000000000000000Student1";
 
-    public static String ENDPOINT_IP = "10.31.199.175";
-    public static String ENDPOINT_GENT = "http://" + ENDPOINT_IP + ":8081";
-    public static String ENDPOINT_RUG = "http://" + ENDPOINT_IP + ":8080";
+    static String ENDPOINT_IP = BuildConfig.ENDPOINT_IP;
+    static String ENDPOINT_GENT = "http://" + ENDPOINT_IP + ":8081";
+    static String ENDPOINT_RUG = "http://" + ENDPOINT_IP + ":8080";
 }

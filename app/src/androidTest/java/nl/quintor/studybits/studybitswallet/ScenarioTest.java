@@ -1,26 +1,29 @@
 package nl.quintor.studybits.studybitswallet;
 
+import android.Manifest;
+import android.support.test.espresso.IdlingPolicies;
+import android.support.test.espresso.matcher.RootMatchers;
 import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
+import android.support.test.rule.GrantPermissionRule;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
+import android.view.WindowManager;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.TimeUnit;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.Espresso.pressBack;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.typeText;
-import static android.support.test.espresso.action.ViewActions.typeTextIntoFocusedView;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
-import static android.support.test.espresso.matcher.ViewMatchers.hasBackground;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static android.support.test.espresso.matcher.ViewMatchers.withChild;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static android.support.test.espresso.matcher.ViewMatchers.withParent;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.core.AllOf.allOf;
 
@@ -29,20 +32,36 @@ import static org.hamcrest.core.AllOf.allOf;
  *
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
-@RunWith(AndroidJUnit4.class)
+
 @LargeTest
 public class ScenarioTest {
 
     @Rule
     public ActivityTestRule<MainActivity> mainActivityRule = new ActivityTestRule<>(MainActivity.class);
 
+    @Rule
+    public GrantPermissionRule grantPermissionRule = GrantPermissionRule.grant(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE);
+
+    @Before
+    public void setTimeouts() {
+        Log.d("STUDYBITS", "Setting timeouts to 3 minutes");
+
+        IdlingPolicies.setMasterPolicyTimeout(180, TimeUnit.SECONDS);
+        IdlingPolicies.setIdlingResourceTimeout(180, TimeUnit.SECONDS);
+    }
+
     @Test
     public void fullScenarioTest() {
+        Log.d("STUDYBITS", "Starting test");
         // Reset
         onView(withId(R.id.fab))
                 .perform(click());
+        Log.d("STUDYBITS", "Clicked reset");
+
         onView(allOf(withId(android.support.design.R.id.snackbar_text), withText("Successfully reset")))
                 .check(matches(isDisplayed()));
+
+        Log.d("STUDYBITS", "Successfully reset");
 
         // Navigate to universities
 
