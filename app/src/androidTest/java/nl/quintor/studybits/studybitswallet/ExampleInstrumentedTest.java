@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("studybits.quintor.nl.studybitswallet", appContext.getPackageName());
+        assertEquals("nl.quintor.studybits.studybitswallet", appContext.getPackageName());
     }
 }
