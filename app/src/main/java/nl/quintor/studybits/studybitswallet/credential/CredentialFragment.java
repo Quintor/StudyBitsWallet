@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 import nl.quintor.studybits.indy.wrapper.IndyPool;
 import nl.quintor.studybits.indy.wrapper.IndyWallet;
+import nl.quintor.studybits.indy.wrapper.message.MessageEnvelopeCodec;
 import nl.quintor.studybits.studybitswallet.IndyClient;
 import nl.quintor.studybits.studybitswallet.R;
 import nl.quintor.studybits.studybitswallet.TestConfiguration;
@@ -47,6 +48,7 @@ public class CredentialFragment extends Fragment {
 
     protected IndyPool indyPool;
     protected IndyWallet studentWallet;
+    protected MessageEnvelopeCodec studentCodec;
 
 
     @Override
@@ -60,6 +62,7 @@ public class CredentialFragment extends Fragment {
             if (indyPool == null || studentWallet == null) {
                 indyPool = new IndyPool("testPool");
                 studentWallet = IndyWallet.open(indyPool, "student_wallet", TestConfiguration.STUDENT_SEED, TestConfiguration.STUDENT_DID);
+                studentCodec = new MessageEnvelopeCodec(studentWallet);
             }
         } catch (IndyException | ExecutionException | InterruptedException | JsonProcessingException e) {
             Log.e("STUDYBITS", "Exception on resume " + e.getMessage());
@@ -126,7 +129,7 @@ public class CredentialFragment extends Fragment {
 
             initWallet();
 
-            credentialOfferViewModel.initCredentialOffers(endpoints, studentWallet);
+            credentialOfferViewModel.initCredentialOffers(endpoints, studentCodec);
             credentialOfferViewModel.initCredentials(studentWallet);
 
             credentialOfferViewModel.getCredentials().observe(this, credentials -> {
@@ -177,7 +180,7 @@ public class CredentialFragment extends Fragment {
             }
             mListener.onListFragmentInteraction(credentialOrOffer);
 
-            credentialOfferViewModel.initCredentialOffers(endpoints, studentWallet);
+            credentialOfferViewModel.initCredentialOffers(endpoints, studentCodec);
         });
     }
 

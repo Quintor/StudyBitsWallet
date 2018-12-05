@@ -1,11 +1,14 @@
 package nl.quintor.studybits.studybitswallet.exchangeposition;
 
-import nl.quintor.studybits.indy.wrapper.dto.AuthcryptedMessage;
+import org.hyperledger.indy.sdk.anoncreds.ProofRejectedException;
+
+import nl.quintor.studybits.indy.wrapper.dto.EncryptedMessage;
+import nl.quintor.studybits.indy.wrapper.dto.ProofRequest;
 import nl.quintor.studybits.studybitswallet.room.entity.University;
 
 public class ExchangePosition {
     private String name;
-    private AuthcryptedMessage authcryptedProofRequest;
+    private ProofRequest proofRequest;
     private boolean fulfilled;
     private University university;
 
@@ -13,9 +16,9 @@ public class ExchangePosition {
 
     }
 
-    public ExchangePosition(String name, AuthcryptedMessage authcryptedProofRequest, University university, boolean fulfilled) {
+    public ExchangePosition(String name, ProofRequest proofRequest, University university, boolean fulfilled) {
         this.name = name;
-        this.authcryptedProofRequest = authcryptedProofRequest;
+        this.proofRequest = proofRequest;
         this.university = university;
         this.fulfilled = fulfilled;
     }
@@ -28,12 +31,12 @@ public class ExchangePosition {
         this.name = name;
     }
 
-    public AuthcryptedMessage getAuthcryptedProofRequest() {
-        return authcryptedProofRequest;
+    public ProofRequest getProofRequest() {
+        return proofRequest;
     }
 
-    public void setAuthcryptedProofRequest(AuthcryptedMessage authcryptedProofRequest) {
-        this.authcryptedProofRequest = authcryptedProofRequest;
+    public void setAuthcryptedProofRequest(ProofRequest proofRequest) {
+        this.proofRequest = proofRequest;
     }
 
     public University getUniversity() {

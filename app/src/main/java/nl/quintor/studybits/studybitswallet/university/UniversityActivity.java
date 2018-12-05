@@ -25,8 +25,9 @@ import java.util.concurrent.ExecutionException;
 
 import nl.quintor.studybits.indy.wrapper.IndyPool;
 import nl.quintor.studybits.indy.wrapper.IndyWallet;
-import nl.quintor.studybits.indy.wrapper.dto.AnoncryptedMessage;
+import nl.quintor.studybits.indy.wrapper.dto.EncryptedMessage;
 import nl.quintor.studybits.indy.wrapper.dto.ConnectionRequest;
+import nl.quintor.studybits.indy.wrapper.message.IndyMessageTypes;
 import nl.quintor.studybits.indy.wrapper.message.MessageEnvelope;
 import nl.quintor.studybits.indy.wrapper.util.AsyncUtil;
 import nl.quintor.studybits.studybitswallet.AgentClient;
@@ -34,6 +35,7 @@ import nl.quintor.studybits.studybitswallet.IndyClient;
 import nl.quintor.studybits.studybitswallet.MainActivity;
 import nl.quintor.studybits.studybitswallet.R;
 import nl.quintor.studybits.studybitswallet.WalletActivity;
+import nl.quintor.studybits.studybitswallet.exchangeposition.StudyBitsMessageTypes;
 import nl.quintor.studybits.studybitswallet.room.AppDatabase;
 import nl.quintor.studybits.studybitswallet.room.entity.University;
 
@@ -48,6 +50,8 @@ public class UniversityActivity extends WalletActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        IndyMessageTypes.init();
+        StudyBitsMessageTypes.init();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_university);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -67,7 +71,7 @@ public class UniversityActivity extends WalletActivity {
                     String username = dialogFragment.getUsernameText();
                     Log.d("STUDYBITS", "Logging in with endpoint " + endpoint + " and username " + username);
                     AgentClient agentClient = new AgentClient(endpoint);
-                    ConnectionRequest connectionRequest = agentClient.login(username);
+                    ConnectionRequest connectionRequest = agentClient.login(username, studentCodec);
                     try {
                         IndyClient indyClient = new IndyClient(studentWallet, AppDatabase.getInstance(getApplicationContext()));
                         University university = indyClient.connect(endpoint, agentClient, connectionRequest);

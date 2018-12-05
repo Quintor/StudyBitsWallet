@@ -18,10 +18,11 @@ import java.util.stream.Collectors;
 
 import nl.quintor.studybits.indy.wrapper.IndyWallet;
 import nl.quintor.studybits.indy.wrapper.Prover;
-import nl.quintor.studybits.indy.wrapper.dto.AuthcryptedMessage;
+
 import nl.quintor.studybits.indy.wrapper.dto.CredentialInfo;
 import nl.quintor.studybits.indy.wrapper.dto.CredentialOffer;
 import nl.quintor.studybits.indy.wrapper.message.MessageEnvelope;
+import nl.quintor.studybits.indy.wrapper.message.MessageEnvelopeCodec;
 import nl.quintor.studybits.indy.wrapper.util.AsyncUtil;
 import nl.quintor.studybits.studybitswallet.AgentClient;
 import nl.quintor.studybits.studybitswallet.IndyClient;
@@ -51,13 +52,13 @@ public class CredentialOfferViewModel extends AndroidViewModel {
         }
     }
 
-    public void initCredentialOffers(List<University> universities, IndyWallet indyWallet) {
+    public void initCredentialOffers(List<University> universities, MessageEnvelopeCodec codec) {
         Log.d("STUDYBITS", "Initializing credential offers");
         try {
             List<CredentialOrOffer> credentialOrOffers = new ArrayList<>();
             for (University university : universities) {
                 Log.d("STUDYBITS", "Initializing credential offers for university " + university);
-                List<CredentialOrOffer> credentialOrOffersForUni = getCredentialOrOffers(indyWallet, university);
+                List<CredentialOrOffer> credentialOrOffersForUni = getCredentialOrOffers(codec, university);
 
                 credentialOrOffers.addAll(credentialOrOffersForUni);
             }
@@ -72,13 +73,12 @@ public class CredentialOfferViewModel extends AndroidViewModel {
         }
     }
 
-    private List<CredentialOrOffer> getCredentialOrOffers(IndyWallet indyWallet, University university) throws IOException {
-        List<MessageEnvelope<CredentialOffer>> offersForUni = new AgentClient(university.getEndpoint()).getCredentialOffers(indyWallet);
+    private List<CredentialOrOffer> getCredentialOrOffers(MessageEnvelopeCodec codec, University university) throws IOException, InterruptedException, ExecutionException, IndyException {
+        List<CredentialOffer> offersForUni = new AgentClient(university.getEndpoint()).getCredentialOffers(codec);
 
         Log.d("STUDYBITS", "Got " + offersForUni.size() + " message envelopes with offers");
 
         return offersForUni.stream()
-                .map(AsyncUtil.wrapException(MessageEnvelope::getMessage))
                 .map(credentialOffer -> CredentialOrOffer.fromCredentialOffer(university.getName(), credentialOffer))
                 .collect(Collectors.toList());
     }
