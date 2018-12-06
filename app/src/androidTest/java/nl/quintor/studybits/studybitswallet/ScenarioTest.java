@@ -1,7 +1,10 @@
 package nl.quintor.studybits.studybitswallet;
 
 import android.Manifest;
+import android.content.Intent;
+import android.net.Uri;
 import android.support.test.espresso.IdlingPolicies;
+import android.support.test.espresso.action.ViewActions;
 import android.support.test.espresso.matcher.RootMatchers;
 import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
@@ -17,13 +20,18 @@ import org.junit.runner.RunWith;
 
 import java.util.concurrent.TimeUnit;
 
+import nl.quintor.studybits.studybitswallet.university.UniversityActivity;
+
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.Espresso.pressBack;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static android.support.test.espresso.matcher.ViewMatchers.isRoot;
+import static android.support.test.espresso.matcher.ViewMatchers.withContentDescription;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
+import static android.support.test.espresso.matcher.ViewMatchers.withParent;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.core.AllOf.allOf;
 
@@ -38,6 +46,9 @@ public class ScenarioTest {
 
     @Rule
     public ActivityTestRule<MainActivity> mainActivityRule = new ActivityTestRule<>(MainActivity.class);
+
+    @Rule
+    public ActivityTestRule<UniversityActivity> universityActivityRule = new ActivityTestRule<>(UniversityActivity.class, true, false);
 
     @Rule
     public GrantPermissionRule grantPermissionRule = GrantPermissionRule.grant(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE);
@@ -63,27 +74,20 @@ public class ScenarioTest {
 
         Log.d("STUDYBITS", "Successfully reset");
 
-        // Navigate to universities
 
-        onView(withId(R.id.button_university))
-                .perform(click());
 
-        onView(withId(R.id.university_fab))
-                .check(matches(isDisplayed()));
 
-        // Open university dialog
+        // Launch connection dialog
+        Intent intent = new Intent();
 
-        onView(withId(R.id.university_fab))
-                .perform(click());
+        intent.setAction(Intent.ACTION_VIEW);
+        intent.setData(TestConfiguration.CONNECTION_URI_RUG);
 
-        onView(withId(R.id.university_endpoint_text))
-                .check(matches(isDisplayed()));
+        universityActivityRule.launchActivity(intent);
 
         // Enter text
-        onView(withId(R.id.university_endpoint_text))
-                .perform(typeText(TestConfiguration.ENDPOINT_RUG));
-
         onView(withId(R.id.student_id_text))
+                .check(matches(isDisplayed()))
                 .perform(typeText("12345678"));
 
         // Click connect
@@ -94,8 +98,8 @@ public class ScenarioTest {
         onView(withText("Rijksuniversiteit Groningen"))
                 .check(matches(isDisplayed()));
 
-        // Navigate to credentials
-        pressBack();
+        // Navigate to credentials via pressing back on toolbar
+        onView(withContentDescription(R.string.abc_action_bar_up_description)).perform(click());
         onView(withId(R.id.button_credential))
                 .perform(click());
 
@@ -107,24 +111,17 @@ public class ScenarioTest {
         onView(withText("Rijksuniversiteit Groningen"))
                 .perform(click());
 
-        // Navigate to universities
-        pressBack();
-        onView(withId(R.id.button_university))
-                .perform(click());
+        // Launch connection dialog
+        intent = new Intent();
 
-        onView(withId(R.id.university_fab))
-                .check(matches(isDisplayed()));
+        intent.setAction(Intent.ACTION_VIEW);
+        intent.setData(TestConfiguration.CONNECTION_URI_GENT);
 
-        // Open university dialog
-        onView(withId(R.id.university_fab))
-                .perform(click());
-
-        onView(withId(R.id.university_endpoint_text))
-                .check(matches(isDisplayed()));
+        universityActivityRule.launchActivity(intent);
 
         // Enter text
-        onView(withId(R.id.university_endpoint_text))
-                .perform(typeText(TestConfiguration.ENDPOINT_GENT));
+        onView(withId(R.id.student_id_text))
+                .check(matches(isDisplayed()));
 
         // Click connect
         onView(withText(R.string.connect))
@@ -135,8 +132,8 @@ public class ScenarioTest {
                 .check(matches(isDisplayed()));
 
 
-        // Navigate to exchange positions
-        pressBack();
+        // Navigate to exchange positions via pressing back on toolbar
+        onView(withContentDescription(R.string.abc_action_bar_up_description)).perform(click());
         onView(withId(R.id.button_exchange_position))
                 .perform(click());
 

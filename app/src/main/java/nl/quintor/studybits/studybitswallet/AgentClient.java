@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutionException;
 
 import nl.quintor.studybits.indy.wrapper.IndyWallet;
 import nl.quintor.studybits.indy.wrapper.dto.ConnectionRequest;
+import nl.quintor.studybits.indy.wrapper.dto.ConnectionResponse;
 import nl.quintor.studybits.indy.wrapper.dto.CredentialOffer;
 import nl.quintor.studybits.indy.wrapper.dto.CredentialOfferList;
 import nl.quintor.studybits.indy.wrapper.message.IndyMessageTypes;
@@ -42,7 +43,7 @@ public class AgentClient {
     public AgentClient(String endpoint) {
         this.endpoint = endpoint;
     }
-    public ConnectionRequest login(String username, MessageEnvelopeCodec codec) {
+    public MessageEnvelope<ConnectionResponse> login(String username, MessageEnvelope<ConnectionRequest> envelope) {
         try {
             Log.d("STUDYBITS", "Logging in");
             URL url;
@@ -59,10 +60,18 @@ public class AgentClient {
             urlConnection.setRequestProperty("Accept", "application/json");
             urlConnection.setRequestProperty("Content-Type", "application/json");
             urlConnection.setRequestMethod("POST");
+            urlConnection.setDoOutput(true);
+            urlConnection.setDoInput(true);
 
-            return codec.decryptMessage(MessageEnvelope.parseFromString(IOUtils.toString(urlConnection.getInputStream(), Charset.forName("utf8")), IndyMessageTypes.CONNECTION_REQUEST)).get();
+
+
+            OutputStream out = urlConnection.getOutputStream();
+            out.write(envelope.toJSON().getBytes(Charset.forName("utf8")));
+            out.close();
+
+            return MessageEnvelope.parseFromString(IOUtils.toString(urlConnection.getInputStream(), Charset.forName("utf8")), IndyMessageTypes.CONNECTION_RESPONSE);
         }
-        catch (IOException | IndyException | InterruptedException | ExecutionException e) {
+        catch (IOException e) {
             Log.e("STUDYBITS", "Exception when logging in" + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException(e);

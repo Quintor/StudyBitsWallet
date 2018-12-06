@@ -1,6 +1,8 @@
 package nl.quintor.studybits.studybitswallet.university;
 
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -59,32 +61,40 @@ public class UniversityActivity extends WalletActivity {
 
         final UniversityActivity activity = this;
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.university_fab);
+        Intent intent = getIntent();
 
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ConnectUniversityDialogFragment dialogFragment = new ConnectUniversityDialogFragment();
+        if (intent != null && intent.getData() != null) {
+            Uri data = intent.getData();
 
-                dialogFragment.setConnectDialogListener(() -> {
-                    String endpoint = dialogFragment.getEndpointText();
-                    String username = dialogFragment.getUsernameText();
-                    Log.d("STUDYBITS", "Logging in with endpoint " + endpoint + " and username " + username);
-                    AgentClient agentClient = new AgentClient(endpoint);
-                    ConnectionRequest connectionRequest = agentClient.login(username, studentCodec);
-                    try {
-                        IndyClient indyClient = new IndyClient(studentWallet, AppDatabase.getInstance(getApplicationContext()));
-                        University university = indyClient.connect(endpoint, agentClient, connectionRequest);
+            String name = data.getQueryParameter("university");
+            String did = data.getQueryParameter("did");
+            String endpoint = data.getQueryParameter("endpoint");
 
-                        Snackbar.make(view, "Connected to " + university.getName() + "!", Snackbar.LENGTH_SHORT).show();
-                    } catch (Exception e) {
-                        Log.e("STUDYBITS", "Exception on accepting connection request" + e.getMessage());
+            ConnectUniversityDialogFragment dialogFragment = new ConnectUniversityDialogFragment();
+            Bundle arguments = new Bundle();
+            arguments.putString("name", name);
+            dialogFragment.setArguments(arguments);
 
-                    }
-                });
-                dialogFragment.show(getSupportFragmentManager(), "connect");
-            }
-        });
+
+            dialogFragment.setConnectDialogListener(() -> {
+                String username = dialogFragment.getUsernameText();
+                Log.d("STUDYBITS", "Logging in with endpoint " + endpoint + " and username " + username);
+                AgentClient agentClient = new AgentClient(endpoint);
+                IndyClient indyClient = new IndyClient(studentWallet, AppDatabase.getInstance(getApplicationContext()));
+
+
+                try {
+                    University university = indyClient.connect(endpoint, name, username, did, agentClient);
+
+                    Snackbar.make(activity.getWindow().getDecorView(), "Connected to " + university.getName() + "!", Snackbar.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Log.e("STUDYBITS", "Exception on accepting connection request" + e.getMessage());
+
+                }
+            });
+            dialogFragment.show(getSupportFragmentManager(), "connect");
+        }
+
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         universityRecyclerView = findViewById(R.id.university_recycler_view);

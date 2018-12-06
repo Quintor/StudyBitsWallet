@@ -2,11 +2,10 @@
 <LinearLayout android:orientation="vertical"
     xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <EditText
-        android:id="@+id/university_endpoint_text"
+    <TextView
+        android:id="@+id/university_name"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/university_endpoint"/>
+        android:layout_height="wrap_content"/>
 
     <EditText
         android:id="@+id/student_id_text"
