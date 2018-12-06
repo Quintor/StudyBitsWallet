@@ -47,7 +47,5 @@ script:
   - sh -c "ps aux --sort -rss | head -20"
   - adb shell input keyevent 82 & # 82 is the special code for unlocking the screen
   - adb root
-  - adb shell uiautomator dump /data/view.xml # Dump the view to analyse if something goes wrong on startup
-  - adb shell cat /data/view.xml 
   - adb shell input touchscreen swipe 100 420 101 420 # Presses the "Close app" button on the dialog "Process system is not responding", freeing up the device
   - travis_wait ./gradlew connectedCheck --stacktrace
