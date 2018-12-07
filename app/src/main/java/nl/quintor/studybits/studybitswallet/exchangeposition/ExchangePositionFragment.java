@@ -183,8 +183,8 @@ public class ExchangePositionFragment extends Fragment {
         final ExchangePositionViewModel exchangePositionViewModel = ViewModelProviders.of(this)
                 .get(ExchangePositionViewModel.class);
 
-        List<University> universityList = AppDatabase.getInstance(getContext()).universityDao().getStatic();
-        exchangePositionViewModel.init(universityList, studentCodec);
+        AppDatabase.getInstance(getContext()).universityDao().get()
+                .observe(this, universityList -> exchangePositionViewModel.init(universityList, studentCodec));
     }
 
 

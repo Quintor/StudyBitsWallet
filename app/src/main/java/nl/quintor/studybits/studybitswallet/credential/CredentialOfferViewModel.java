@@ -53,6 +53,9 @@ public class CredentialOfferViewModel extends AndroidViewModel {
     }
 
     public void initCredentialOffers(List<University> universities, MessageEnvelopeCodec codec) {
+        if (universities == null) {
+            return;
+        }
         Log.d("STUDYBITS", "Initializing credential offers");
         try {
             List<CredentialOrOffer> credentialOrOffers = new ArrayList<>();

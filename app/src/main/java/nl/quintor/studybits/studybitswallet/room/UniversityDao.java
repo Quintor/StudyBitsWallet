@@ -23,10 +23,7 @@ public interface UniversityDao {
     public List<University> getStatic();
 
     @Query("SELECT * FROM university WHERE theirDid = :did")
-    public University getByDid(String did);
-
-    @Query("SELECT * FROM university WHERE credDefId = :credDefId")
-    public University getByCredDefId(String credDefId);
+    public LiveData<University> getByDid(String did);
 
     @Query("DELETE FROM university")
     public void delete();

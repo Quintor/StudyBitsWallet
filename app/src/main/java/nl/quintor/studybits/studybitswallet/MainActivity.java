@@ -36,6 +36,8 @@ import java.net.CookiePolicy;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import nl.quintor.studybits.indy.wrapper.IndyPool;
 import nl.quintor.studybits.indy.wrapper.IndyWallet;
@@ -160,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
                 IndyMessageTypes.init();
                 StudyBitsMessageTypes.init();
 
-                AppDatabase.getInstance(this).universityDao().delete();
+
 
                 URL url = new URL(TestConfiguration.ENDPOINT_RUG + "/bootstrap/reset");
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -179,9 +181,17 @@ public class MainActivity extends AppCompatActivity {
                 urlConnection.setRequestMethod("POST");
                 urlConnection.setDoOutput(false);
                 urlConnection.setDoInput(true);
-
                 Log.d("STUDYBITS", "Response code: " + urlConnection.getResponseCode());
-                Snackbar.make(view, "Successfully reset", Snackbar.LENGTH_SHORT).show();
+
+                AtomicInteger countDownLatch = new AtomicInteger(1);
+
+                AppDatabase.AsyncDatabaseTask databaseClean = new AppDatabase.AsyncDatabaseTask(
+                        () -> AppDatabase.getInstance(this).universityDao().delete(),
+                        countDownLatch,
+                        () -> Snackbar.make(view, "Successfully reset", Snackbar.LENGTH_SHORT).show());
+                databaseClean.execute();
+
+
             } catch (Exception e) {
                 Log.e("STUDYBITS", "Exception during reset" + e.getMessage());
                 e.printStackTrace();

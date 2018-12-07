@@ -1,5 +1,7 @@
 package nl.quintor.studybits.studybitswallet.credential;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.os.Bundle;
@@ -20,11 +22,15 @@ import org.hyperledger.indy.sdk.IndyException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import nl.quintor.studybits.indy.wrapper.IndyPool;
 import nl.quintor.studybits.indy.wrapper.IndyWallet;
+import nl.quintor.studybits.indy.wrapper.dto.CredentialInfo;
+import nl.quintor.studybits.indy.wrapper.dto.CredentialOffer;
 import nl.quintor.studybits.indy.wrapper.message.MessageEnvelopeCodec;
 import nl.quintor.studybits.studybitswallet.IndyClient;
 import nl.quintor.studybits.studybitswallet.R;
@@ -121,51 +127,71 @@ public class CredentialFragment extends Fragment {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
 
-
-            List<University> endpoints = AppDatabase.getInstance(context).universityDao().getStatic();
+            final CredentialFragment credentialFragment = this;
 
             final CredentialOfferViewModel credentialOfferViewModel = ViewModelProviders.of(this)
                     .get(CredentialOfferViewModel.class);
 
             initWallet();
 
-            credentialOfferViewModel.initCredentialOffers(endpoints, studentCodec);
+            AtomicBoolean hasExecuted = new AtomicBoolean(false);
+
+
+            LiveData<List<University>> universities = AppDatabase.getInstance(context).universityDao().get();
+
+            LiveData<List<CredentialInfo>> credentials =  credentialOfferViewModel.getCredentials();
+
+            LiveData<List<CredentialOrOffer>> credentialOffers = credentialOfferViewModel.getCredentialOffers();
+
             credentialOfferViewModel.initCredentials(studentWallet);
 
-            credentialOfferViewModel.getCredentials().observe(this, credentials -> {
-                List<CredentialOrOffer> credentialOrOffers = credentials.stream()
-                        .map(credential -> {
-                            Log.d("STUDYBITS", "Credential Referent" + credential.getReferent());
-                            University university = AppDatabase.getInstance(context).universityDao().getByCredDefId(credential.getCredDefId());
-                            return CredentialOrOffer.fromCredential(university.getName(), credential);
-                        }).collect(Collectors.toList());
-
-                if (credentialOfferViewModel.getCredentialOffers().getValue() != null) {
-                    credentialOrOffers.addAll(credentialOfferViewModel.getCredentialOffers().getValue());
+            Runnable renewAdapter = () -> {
+                List<University> endpoints = universities.getValue();
+                if (endpoints == null) {
+                    return;
                 }
 
-                recyclerView.setAdapter(createAdapter(view, endpoints, credentialOfferViewModel, credentialOrOffers));
-            });
+                List<CredentialOrOffer> credentialOrOffers = new ArrayList<>();
 
-            credentialOfferViewModel.getCredentialOffers().observe(this, credentialOffers ->
-            {
-                List<CredentialOrOffer> credentialOrOffers = new ArrayList<>(credentialOffers);
-                if (credentialOfferViewModel.getCredentials().getValue() != null) {
-                    List<CredentialOrOffer> credentials = credentialOfferViewModel.getCredentials().getValue().stream()
-                            .map(credential -> {
-                                University university = AppDatabase.getInstance(context).universityDao().getByCredDefId(credential.getCredDefId());
-                                return CredentialOrOffer.fromCredential(university.getName(), credential);
-                            }).collect(Collectors.toList());
-                    credentialOrOffers.addAll(credentials);
+                if (credentials.getValue() != null) {
+                    credentialOrOffers.addAll(getCredentialOrOffersFromCredentials(endpoints, credentials.getValue()));
+                }
+
+                if (credentialOffers.getValue() != null) {
+                    credentialOrOffers.addAll(credentialOffers.getValue());
                 }
 
                 Log.d("STUDYBITS", "Setting credential offers adapter");
-                recyclerView.setAdapter(createAdapter(view, endpoints, credentialOfferViewModel, credentialOrOffers));
+                recyclerView.setAdapter(createAdapter(view, universities.getValue(), credentialOfferViewModel, credentialOrOffers));
+            };
+
+            universities.observe(this, endpoints -> {
+                credentialOfferViewModel.initCredentialOffers(endpoints, studentCodec);
+                renewAdapter.run();
             });
 
+            credentials.observe(this, _var -> renewAdapter.run());
+            credentialOffers.observe(this, _var -> renewAdapter.run());
 
         }
         return view;
+
+    }
+
+    private void renewAdapter(View view, List<University> endpoints, CredentialOfferViewModel credentialOfferViewModel, RecyclerView recyclerView) {
+
+    }
+
+    private List<CredentialOrOffer> getCredentialOrOffersFromCredentials(List<University> endpoints, List<CredentialInfo> credentials) {
+        return credentials.stream()
+                .map(credential -> {
+                    Log.d("STUDYBITS", "Credential Referent" + credential.getReferent());
+                    return endpoints.stream()
+                            .filter(u -> credential.getCredDefId().equals(u.getCredDefId()))
+                            .map(u -> CredentialOrOffer.fromCredential(u.getName(), credential))
+                            .limit(1);
+                })
+                .flatMap(s -> s).collect(Collectors.toList());
     }
 
     @NonNull
@@ -174,9 +200,13 @@ public class CredentialFragment extends Fragment {
             if (credentialOrOffer.getCredentialOffer() != null) {
                 initWallet();
                 IndyClient indyClient = new IndyClient(studentWallet, AppDatabase.getInstance(getContext()));
-                indyClient.acceptCredentialOffer(credentialOrOffer.getCredentialOffer());
-                credentialOfferViewModel.initCredentials(studentWallet);
-                Snackbar.make(view, "Obtained credential!", Snackbar.LENGTH_SHORT).show();
+                CompletableFuture<Void> future = new CompletableFuture<>();
+                indyClient.acceptCredentialOffer(this, credentialOrOffer.getCredentialOffer(), future);
+                future.thenAccept(_void -> {
+                    credentialOfferViewModel.initCredentials(studentWallet);
+                    Snackbar.make(view, "Obtained credential!", Snackbar.LENGTH_SHORT).show();
+                });
+
             }
             mListener.onListFragmentInteraction(credentialOrOffer);
 
