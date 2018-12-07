@@ -199,55 +199,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    static MessageEnvelope postAndReturnMessage(MessageEnvelope message) throws IOException {
-        URL url = new URL(TestConfiguration.ENDPOINT_RUG + "/agent/message");
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-        urlConnection.setRequestProperty("Accept", "application/json");
-        urlConnection.setRequestProperty("Content-Type", "application/json");
-        urlConnection.setRequestMethod("POST");
-        urlConnection.setDoOutput(true);
-        urlConnection.setDoInput(true);
-
-        OutputStream out = urlConnection.getOutputStream();
-        out.write(message.toJSON().getBytes(Charset.forName("utf8")));
-        out.close();
-
-        Log.d("STUDYBITS", "Response code: " + urlConnection.getResponseCode());
-        return JSONUtil.mapper.readValue(new BufferedInputStream(urlConnection.getInputStream()), MessageEnvelope.class);
-    }
-
-    static MessageEnvelope login() throws IOException {
-        URL url = new URL(TestConfiguration.ENDPOINT_RUG + "/agent/login/12345678");
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-        urlConnection.setRequestProperty("Accept", "application/json");
-        urlConnection.setRequestProperty("Content-Type", "application/json");
-        urlConnection.setRequestMethod("POST");
-
-        return JSONUtil.mapper.readValue(new BufferedInputStream(urlConnection.getInputStream()), MessageEnvelope.class);
-    }
-
-    static MessageEnvelope[] getCredentialOffers() throws IOException {
-        URL url = new URL(TestConfiguration.ENDPOINT_RUG + "/agent/credential_offer");
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-        urlConnection.setRequestProperty("Accept", "application/json");
-        urlConnection.setRequestProperty("Content-Type", "application/json");
-
-        return JSONUtil.mapper.readValue(new BufferedInputStream(urlConnection.getInputStream()), MessageEnvelope[].class);
-    }
-
-    static String getTestPoolIP() {
-        String testPoolIp = System.getenv("TEST_POOL_IP");
-        return testPoolIp != null ? testPoolIp : "127.0.0.1";
-    }
-
-    static String getTmpPath() {
-        return FileUtils.getTempDirectoryPath() + "/indy/";
-    }
-
-    static String getTmpPath(String filename) {
-        return getTmpPath() + filename;
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
