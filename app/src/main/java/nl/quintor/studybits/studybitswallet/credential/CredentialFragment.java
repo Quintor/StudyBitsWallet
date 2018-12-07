@@ -178,10 +178,6 @@ public class CredentialFragment extends Fragment {
 
     }
 
-    private void renewAdapter(View view, List<University> endpoints, CredentialOfferViewModel credentialOfferViewModel, RecyclerView recyclerView) {
-
-    }
-
     private List<CredentialOrOffer> getCredentialOrOffersFromCredentials(List<University> endpoints, List<CredentialInfo> credentials) {
         return credentials.stream()
                 .map(credential -> {
