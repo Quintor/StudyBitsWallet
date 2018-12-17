@@ -1,5 +1,7 @@
 package nl.quintor.studybits.studybitswallet;
 
+import android.arch.lifecycle.LifecycleOwner;
+import android.os.AsyncTask;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.util.Base64;
@@ -13,7 +15,10 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import nl.quintor.studybits.indy.wrapper.IndyWallet;
 import nl.quintor.studybits.indy.wrapper.Prover;
@@ -47,7 +52,7 @@ public class IndyClient {
         this.appDatabase = appDatabase;
     }
 
-    public void acceptCredentialOffer(CredentialOffer credentialOffer) {
+    public void acceptCredentialOffer(LifecycleOwner lifecycleOwner, CredentialOffer credentialOffer, CompletableFuture<Void> returnValue) {
         try {
             Log.d("STUDYBITS", "Accepting credential offer");
             Prover studentProver = new Prover(studentWallet, TestConfiguration.STUDENT_SECRET_NAME);
@@ -55,28 +60,40 @@ public class IndyClient {
             CredentialRequest credentialRequest = studentProver.createCredentialRequest(credentialOffer).get();
             MessageEnvelope credentialRequestEnvelope = studentCodec.encryptMessage(credentialRequest, IndyMessageTypes.CREDENTIAL_REQUEST).get();
 
-            University university = appDatabase.universityDao().getByDid(credentialOffer.getTheirDid());
+            appDatabase.universityDao().getByDid(credentialOffer.getTheirDid()).observe(lifecycleOwner,
+                    university -> {
+                        if (returnValue.isDone()) {
+                            return;
+                        }
+                        try {
+                            MessageEnvelope<CredentialWithRequest> credentialEnvelope = new AgentClient(university.getEndpoint()).postAndReturnMessage(credentialRequestEnvelope, IndyMessageTypes.CREDENTIAL);
 
-            MessageEnvelope<CredentialWithRequest> credentialEnvelope = new AgentClient(university.getEndpoint()).postAndReturnMessage(credentialRequestEnvelope, IndyMessageTypes.CREDENTIAL);
+                            CredentialWithRequest credentialWithRequest = studentCodec.decryptMessage(credentialEnvelope).get();
 
-            CredentialWithRequest credentialWithRequest = studentCodec.decryptMessage(credentialEnvelope).get();
+                            studentProver.storeCredential(credentialWithRequest).get();
 
-            studentProver.storeCredential(credentialWithRequest).get();
+                            Credential credential = credentialWithRequest.getCredential();
 
-            Credential credential = credentialWithRequest.getCredential();
+                            university.setCredDefId(credential.getCredDefId());
 
-            university.setCredDefId(credential.getCredDefId());
+                            new AppDatabase.AsyncDatabaseTask(() -> appDatabase.universityDao().insertUniversities(university),
+                                    new AtomicInteger(1), () -> {
+                                Log.d("STUDYBITS", "Accepted credential offer");
+                                returnValue.complete(null);
+                            }).execute();
 
-            appDatabase.universityDao().insertUniversities(university);
 
-            Log.d("STUDYBITS", "Accepted credential offer");
-
-
+                        }
+                        catch (Exception e) {
+                            Log.e("STUDYBITS", "Error while accepting credential offer " + e.getMessage());
+                            returnValue.completeExceptionally(e);
+                        }
+                    });
         }
         catch (Exception e) {
             Log.e("STUDYBITS", "Exception when accepting credential offer" + e.getMessage());
             e.printStackTrace();
-            throw new RuntimeException(e);
+            returnValue.completeExceptionally(e);
         }
     }
 
@@ -106,7 +123,7 @@ public class IndyClient {
         University university = new University(uniName, endpoint, connectionResponse.getDid());
 
         Log.d("STUDYBITS", "Inserting university: " + university);
-        appDatabase.universityDao().insertUniversities(university);
+        new AppDatabase.AsyncDatabaseTask(() -> appDatabase.universityDao().insertUniversities(university), null, null).execute();
         return university;
     }
 }

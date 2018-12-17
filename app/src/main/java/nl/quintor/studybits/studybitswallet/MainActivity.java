@@ -36,6 +36,8 @@ import java.net.CookiePolicy;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import nl.quintor.studybits.indy.wrapper.IndyPool;
 import nl.quintor.studybits.indy.wrapper.IndyWallet;
@@ -160,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
                 IndyMessageTypes.init();
                 StudyBitsMessageTypes.init();
 
-                AppDatabase.getInstance(this).universityDao().delete();
+
 
                 URL url = new URL(TestConfiguration.ENDPOINT_RUG + "/bootstrap/reset");
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -179,63 +181,22 @@ public class MainActivity extends AppCompatActivity {
                 urlConnection.setRequestMethod("POST");
                 urlConnection.setDoOutput(false);
                 urlConnection.setDoInput(true);
-
                 Log.d("STUDYBITS", "Response code: " + urlConnection.getResponseCode());
-                Snackbar.make(view, "Successfully reset", Snackbar.LENGTH_SHORT).show();
+
+                AtomicInteger countDownLatch = new AtomicInteger(1);
+
+                AppDatabase.AsyncDatabaseTask databaseClean = new AppDatabase.AsyncDatabaseTask(
+                        () -> AppDatabase.getInstance(this).universityDao().delete(),
+                        countDownLatch,
+                        () -> Snackbar.make(view, "Successfully reset", Snackbar.LENGTH_SHORT).show());
+                databaseClean.execute();
+
+
             } catch (Exception e) {
                 Log.e("STUDYBITS", "Exception during reset" + e.getMessage());
                 e.printStackTrace();
             }
         });
-    }
-
-    static MessageEnvelope postAndReturnMessage(MessageEnvelope message) throws IOException {
-        URL url = new URL(TestConfiguration.ENDPOINT_RUG + "/agent/message");
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-        urlConnection.setRequestProperty("Accept", "application/json");
-        urlConnection.setRequestProperty("Content-Type", "application/json");
-        urlConnection.setRequestMethod("POST");
-        urlConnection.setDoOutput(true);
-        urlConnection.setDoInput(true);
-
-        OutputStream out = urlConnection.getOutputStream();
-        out.write(message.toJSON().getBytes(Charset.forName("utf8")));
-        out.close();
-
-        Log.d("STUDYBITS", "Response code: " + urlConnection.getResponseCode());
-        return JSONUtil.mapper.readValue(new BufferedInputStream(urlConnection.getInputStream()), MessageEnvelope.class);
-    }
-
-    static MessageEnvelope login() throws IOException {
-        URL url = new URL(TestConfiguration.ENDPOINT_RUG + "/agent/login/12345678");
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-        urlConnection.setRequestProperty("Accept", "application/json");
-        urlConnection.setRequestProperty("Content-Type", "application/json");
-        urlConnection.setRequestMethod("POST");
-
-        return JSONUtil.mapper.readValue(new BufferedInputStream(urlConnection.getInputStream()), MessageEnvelope.class);
-    }
-
-    static MessageEnvelope[] getCredentialOffers() throws IOException {
-        URL url = new URL(TestConfiguration.ENDPOINT_RUG + "/agent/credential_offer");
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-        urlConnection.setRequestProperty("Accept", "application/json");
-        urlConnection.setRequestProperty("Content-Type", "application/json");
-
-        return JSONUtil.mapper.readValue(new BufferedInputStream(urlConnection.getInputStream()), MessageEnvelope[].class);
-    }
-
-    static String getTestPoolIP() {
-        String testPoolIp = System.getenv("TEST_POOL_IP");
-        return testPoolIp != null ? testPoolIp : "127.0.0.1";
-    }
-
-    static String getTmpPath() {
-        return FileUtils.getTempDirectoryPath() + "/indy/";
-    }
-
-    static String getTmpPath(String filename) {
-        return getTmpPath() + filename;
     }
 
     @Override
