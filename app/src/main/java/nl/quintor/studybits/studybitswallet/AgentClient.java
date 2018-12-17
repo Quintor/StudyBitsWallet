@@ -52,17 +52,17 @@ public class AgentClient {
         this.university = university;
         this.codec = codec;
     }
-    public MessageEnvelope<ConnectionResponse> login(String username, MessageEnvelope<ConnectionRequest> envelope) {
+    public static MessageEnvelope<ConnectionResponse> login(String endpoint, String username, MessageEnvelope<ConnectionRequest> envelope) {
         try {
             Log.d("STUDYBITS", "Logging in");
             URL url;
             if (username == null || "".equals(username)) {
-                url = new URL(university.getEndpoint() + "/agent/login");
+                url = new URL(endpoint + "/agent/login");
             }
             else {
-                url = new URL(university.getEndpoint() + "/agent/login?student_id=" + username);
+                url = new URL(endpoint + "/agent/login?student_id=" + username);
             }
-            CookieManager cookieManager = cookieManagers.computeIfAbsent(university.getEndpoint(), s -> new CookieManager());
+            CookieManager cookieManager = cookieManagers.computeIfAbsent(endpoint, s -> new CookieManager());
             CookieHandler.setDefault(cookieManager);
 
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();

@@ -109,12 +109,12 @@ public class IndyClient {
     }
 
     @NonNull
-    public University connect(String endpoint, String uniName, String username, String uniVerinymDid, AgentClient agentClient) throws InterruptedException, ExecutionException, IndyException, IOException {
+    public University connect(String endpoint, String uniName, String username, String uniVerinymDid) throws InterruptedException, ExecutionException, IndyException, IOException {
         ConnectionRequest connectionRequest = studentWallet.createConnectionRequest().get();
 
         MessageEnvelope<ConnectionRequest> connectionResponseEnvelope = studentCodec.encryptMessage(connectionRequest, IndyMessageTypes.CONNECTION_REQUEST, uniVerinymDid).get();
 
-        MessageEnvelope<ConnectionResponse> connectionResponseMessageEnvelope = agentClient.login(username, connectionResponseEnvelope);
+        MessageEnvelope<ConnectionResponse> connectionResponseMessageEnvelope = AgentClient.login(endpoint, username, connectionResponseEnvelope);
 
         ConnectionResponse connectionResponse = studentCodec.decryptMessage(connectionResponseMessageEnvelope).get();
 

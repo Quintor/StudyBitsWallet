@@ -1,12 +1,12 @@
 package nl.quintor.studybits.studybitswallet.exchangeposition;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import nl.quintor.studybits.indy.wrapper.dto.AuthCryptable;
 import nl.quintor.studybits.indy.wrapper.dto.ProofRequest;
+import nl.quintor.studybits.indy.wrapper.dto.Serializable;
 
 import java.util.List;
 
-public class AuthcryptableExchangePositions implements AuthCryptable {
+public class AuthcryptableExchangePositions implements Serializable {
 
     public AuthcryptableExchangePositions() {
 
@@ -27,16 +27,6 @@ public class AuthcryptableExchangePositions implements AuthCryptable {
 
     public void setExchangePositions(List<ExchangePosition> exchangePositions) {
         this.exchangePositions = exchangePositions;
-    }
-
-    @Override
-    public String getTheirDid() {
-        return theirDid;
-    }
-
-    @Override
-    public void setTheirDid(String theirDid) {
-        this.theirDid = theirDid;
     }
 
     public static class ExchangePositionDto {
