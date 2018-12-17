@@ -1,7 +1,9 @@
 package nl.quintor.studybits.studybitswallet;
 
+import android.os.Message;
 import android.util.Log;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import org.apache.commons.io.IOUtils;
@@ -26,34 +28,41 @@ import nl.quintor.studybits.indy.wrapper.dto.ConnectionRequest;
 import nl.quintor.studybits.indy.wrapper.dto.ConnectionResponse;
 import nl.quintor.studybits.indy.wrapper.dto.CredentialOffer;
 import nl.quintor.studybits.indy.wrapper.dto.CredentialOfferList;
+import nl.quintor.studybits.indy.wrapper.dto.CredentialWithRequest;
 import nl.quintor.studybits.indy.wrapper.message.IndyMessageTypes;
 import nl.quintor.studybits.indy.wrapper.message.MessageEnvelope;
 import nl.quintor.studybits.indy.wrapper.message.MessageEnvelopeCodec;
 import nl.quintor.studybits.indy.wrapper.message.MessageType;
+import nl.quintor.studybits.indy.wrapper.message.MessageTypes;
 import nl.quintor.studybits.indy.wrapper.util.JSONUtil;
 import nl.quintor.studybits.studybitswallet.exchangeposition.AuthcryptableExchangePositions;
 import nl.quintor.studybits.studybitswallet.exchangeposition.ExchangePosition;
 import nl.quintor.studybits.studybitswallet.room.entity.University;
 
+import static nl.quintor.studybits.indy.wrapper.message.IndyMessageTypes.*;
+import static nl.quintor.studybits.studybitswallet.exchangeposition.StudyBitsMessageTypes.EXCHANGE_POSITIONS;
+
 public class AgentClient {
     public static Map<String, CookieManager> cookieManagers= new HashMap<>();
 
-    private String endpoint;
+    private University university;
+    private MessageEnvelopeCodec codec;
 
-    public AgentClient(String endpoint) {
-        this.endpoint = endpoint;
+    public AgentClient(University university, MessageEnvelopeCodec codec) {
+        this.university = university;
+        this.codec = codec;
     }
     public MessageEnvelope<ConnectionResponse> login(String username, MessageEnvelope<ConnectionRequest> envelope) {
         try {
             Log.d("STUDYBITS", "Logging in");
             URL url;
             if (username == null || "".equals(username)) {
-                url = new URL(endpoint + "/agent/login");
+                url = new URL(university.getEndpoint() + "/agent/login");
             }
             else {
-                url = new URL(endpoint + "/agent/login?student_id=" + username);
+                url = new URL(university.getEndpoint() + "/agent/login?student_id=" + username);
             }
-            CookieManager cookieManager = cookieManagers.computeIfAbsent(endpoint, s -> new CookieManager());
+            CookieManager cookieManager = cookieManagers.computeIfAbsent(university.getEndpoint(), s -> new CookieManager());
             CookieHandler.setDefault(cookieManager);
 
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -78,22 +87,20 @@ public class AgentClient {
         }
     }
 
-    public List<CredentialOffer> getCredentialOffers(MessageEnvelopeCodec codec) throws IOException, IndyException, ExecutionException, InterruptedException {
-        HttpURLConnection urlConnection = getConnection("/agent/credential_offer");
+    public List<CredentialOffer> getCredentialOffers() throws IOException, IndyException, ExecutionException, InterruptedException {
 
-        MessageEnvelope<CredentialOfferList> credentialOfferListEnvelope = JSONUtil.mapper.readValue(new BufferedInputStream(urlConnection.getInputStream()), MessageEnvelope.class);
+        MessageEnvelope<CredentialOfferList> credentialOfferListEnvelope = this.postAndReturnMessage(getRequestEnvelope(CREDENTIAL_OFFERS), CREDENTIAL_OFFERS);
+
         CredentialOfferList offersList = codec.decryptMessage(credentialOfferListEnvelope).get();
 
         List<CredentialOffer> credentialOffers = offersList.getCredentialOffers();
-        credentialOffers.forEach(credentialOffer -> credentialOffer.setTheirDid(offersList.getTheirDid()));
 
         return credentialOffers;
     }
 
-    public List<ExchangePosition> getExchangePositions(University university, MessageEnvelopeCodec codec) throws IOException, IndyException, ExecutionException, InterruptedException {
-        HttpURLConnection urlConnection = getConnection("/agent/exchange_position");
+    public List<ExchangePosition> getExchangePositions() throws IOException, IndyException, ExecutionException, InterruptedException {
 
-        MessageEnvelope<AuthcryptableExchangePositions> exchangePositionsMessageEnvelope = JSONUtil.mapper.readValue(new BufferedInputStream(urlConnection.getInputStream()), MessageEnvelope.class);
+        MessageEnvelope<AuthcryptableExchangePositions> exchangePositionsMessageEnvelope = this.postAndReturnMessage(getRequestEnvelope(EXCHANGE_POSITIONS), EXCHANGE_POSITIONS);
 
         AuthcryptableExchangePositions exchangePositionsList = codec.decryptMessage(exchangePositionsMessageEnvelope).get();
 
@@ -101,7 +108,6 @@ public class AgentClient {
 
         exchangePositions.forEach(exchangePosition -> {
             exchangePosition.setUniversity(university);
-            exchangePosition.getProofRequest().setTheirDid(exchangePositionsList.getTheirDid());
         });
 
         return exchangePositions;
@@ -141,10 +147,14 @@ public class AgentClient {
 
     }
 
+    public MessageEnvelope<String> getRequestEnvelope(MessageType expectedReturn) throws JsonProcessingException, IndyException, ExecutionException, InterruptedException {
+        return codec.encryptMessage(expectedReturn.getURN(), GET_REQUEST, university.getTheirDid()).get();
+    }
+
     public HttpURLConnection getConnection(String path) throws IOException {
-        CookieManager cookieManager = cookieManagers.computeIfAbsent(endpoint, s -> new CookieManager());
+        CookieManager cookieManager = cookieManagers.computeIfAbsent(university.getEndpoint(), s -> new CookieManager());
         CookieHandler.setDefault(cookieManager);
-        URL url = new URL(endpoint + path);
+        URL url = new URL(university.getEndpoint() + path);
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         urlConnection.setRequestProperty("Accept", "application/json");
         urlConnection.setRequestProperty("Content-Type", "application/json");

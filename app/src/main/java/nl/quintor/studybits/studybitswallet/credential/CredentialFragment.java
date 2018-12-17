@@ -184,7 +184,7 @@ public class CredentialFragment extends Fragment {
                     Log.d("STUDYBITS", "Credential Referent" + credential.getReferent());
                     return endpoints.stream()
                             .filter(u -> credential.getCredDefId().equals(u.getCredDefId()))
-                            .map(u -> CredentialOrOffer.fromCredential(u.getName(), credential))
+                            .map(u -> CredentialOrOffer.fromCredential(u, credential))
                             .limit(1);
                 })
                 .flatMap(s -> s).collect(Collectors.toList());
@@ -197,7 +197,7 @@ public class CredentialFragment extends Fragment {
                 initWallet();
                 IndyClient indyClient = new IndyClient(studentWallet, AppDatabase.getInstance(getContext()));
                 CompletableFuture<Void> future = new CompletableFuture<>();
-                indyClient.acceptCredentialOffer(this, credentialOrOffer.getCredentialOffer(), future);
+                indyClient.acceptCredentialOffer(this, credentialOrOffer, future);
                 future.thenAccept(_void -> {
                     credentialOfferViewModel.initCredentials(studentWallet);
                     Snackbar.make(view, "Obtained credential!", Snackbar.LENGTH_SHORT).show();

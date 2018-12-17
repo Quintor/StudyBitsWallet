@@ -152,7 +152,7 @@ public class ExchangePositionFragment extends Fragment {
                                 .setPositiveButton("Send", (dialogInterface, i) -> {
                                     try {
                                         MessageEnvelope proofEnvelope = indyClient.fulfillExchangePosition(exchangePosition);
-                                        new AgentClient(exchangePosition.getUniversity().getEndpoint()).postMessage(proofEnvelope);
+                                        new AgentClient(exchangePosition.getUniversity(), studentCodec).postMessage(proofEnvelope);
                                     } catch (Exception e) {
                                         Log.e("STUDYBITS", "Exception while fulfilling exchange position (sending)");
                                         e.printStackTrace();
