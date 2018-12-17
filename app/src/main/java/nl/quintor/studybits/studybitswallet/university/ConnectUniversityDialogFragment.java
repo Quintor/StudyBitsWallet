@@ -8,13 +8,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import nl.quintor.studybits.studybitswallet.R;
 
 public class ConnectUniversityDialogFragment extends DialogFragment {
     ConnectDialogListener connectDialogListener;
-    private EditText endpointEditText;
     private EditText usernameEditText;
+
+    private String name;
 
     public ConnectUniversityDialogFragment() {
     }
@@ -36,9 +38,6 @@ public class ConnectUniversityDialogFragment extends DialogFragment {
         return usernameEditText.getText().toString();
     }
 
-    public String getEndpointText() {
-        return endpointEditText.getText().toString();
-    }
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -48,6 +47,10 @@ public class ConnectUniversityDialogFragment extends DialogFragment {
         // Inflate and set the layout for the dialog
         // Pass null as the parent view because its going in the dialog layout
 
+        Bundle arguments = getArguments();
+
+        name = arguments.getString("name");
+
         View view = inflater.inflate(R.layout.dialog_connect_university, null);
         builder.setView(view)
                 // Add action buttons
@@ -56,7 +59,9 @@ public class ConnectUniversityDialogFragment extends DialogFragment {
                     connectDialogListener.onConnectDialogClick();
                     dismiss();
                 });
-        endpointEditText = view.findViewById(R.id.university_endpoint_text);
+        TextView universityText = view.findViewById(R.id.university_name);
+
+        universityText.setText(name);
         usernameEditText = view.findViewById(R.id.student_id_text);
         return builder.create();
     }

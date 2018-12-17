@@ -92,17 +92,18 @@ public class IndyClient {
     }
 
     @NonNull
-    public University connect(String endpoint, AgentClient agentClient, ConnectionRequest connectionRequest) throws InterruptedException, ExecutionException, IndyException, IOException {
+    public University connect(String endpoint, String uniName, String username, String uniVerinymDid, AgentClient agentClient) throws InterruptedException, ExecutionException, IndyException, IOException {
+        ConnectionRequest connectionRequest = studentWallet.createConnectionRequest(uniVerinymDid).get();
 
-        ConnectionResponse connectionResponse = studentWallet.acceptConnectionRequest(connectionRequest).get();
+        MessageEnvelope<ConnectionRequest> connectionResponseEnvelope = studentCodec.encryptMessage(connectionRequest, IndyMessageTypes.CONNECTION_REQUEST).get();
 
-        MessageEnvelope<ConnectionResponse> connectionResponseEnvelope = studentCodec.encryptMessage(connectionResponse, IndyMessageTypes.CONNECTION_RESPONSE).get();
+        MessageEnvelope<ConnectionResponse> connectionResponseMessageEnvelope = agentClient.login(username, connectionResponseEnvelope);
 
-        MessageEnvelope<AuthcryptableString> connectionAcknowledgementEnvelope = agentClient.postAndReturnMessage(connectionResponseEnvelope, IndyMessageTypes.CONNECTION_ACKNOWLEDGEMENT);
+        ConnectionResponse connectionResponse = studentCodec.decryptMessage(connectionResponseMessageEnvelope).get();
 
-        AuthcryptableString uniNameC = studentCodec.decryptMessage(connectionAcknowledgementEnvelope).get();
-        String uniName = uniNameC.getPayload();
-        University university = new University(uniName, endpoint, connectionRequest.getDid());
+        studentWallet.acceptConnectionResponse(connectionResponse, connectionRequest.getDid());
+
+        University university = new University(uniName, endpoint, connectionResponse.getDid());
 
         Log.d("STUDYBITS", "Inserting university: " + university);
         appDatabase.universityDao().insertUniversities(university);
