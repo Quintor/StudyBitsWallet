@@ -1,6 +1,7 @@
 package nl.quintor.studybits.studybitswallet;
 
 import android.os.Message;
+import android.support.design.widget.Snackbar;
 import android.util.Log;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -17,6 +18,7 @@ import java.net.CookieManager;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +54,7 @@ public class AgentClient {
         this.university = university;
         this.codec = codec;
     }
-    public static MessageEnvelope<ConnectionResponse> login(String endpoint, String username, MessageEnvelope<ConnectionRequest> envelope) {
+    public static MessageEnvelope<ConnectionResponse> login(String endpoint, String username, String password, MessageEnvelope<ConnectionRequest> envelope) throws Exception {
         try {
             Log.d("STUDYBITS", "Logging in");
             URL url;
@@ -60,7 +62,7 @@ public class AgentClient {
                 url = new URL(endpoint + "/agent/login");
             }
             else {
-                url = new URL(endpoint + "/agent/login?student_id=" + username);
+                url = new URL(endpoint + "/agent/login?student_id=" + username + "&password=" + password);
             }
             CookieManager cookieManager = cookieManagers.computeIfAbsent(endpoint, s -> new CookieManager());
             CookieHandler.setDefault(cookieManager);
@@ -78,7 +80,13 @@ public class AgentClient {
             out.write(envelope.toJSON().getBytes(Charset.forName("utf8")));
             out.close();
 
-            return MessageEnvelope.parseFromString(IOUtils.toString(urlConnection.getInputStream(), Charset.forName("utf8")), IndyMessageTypes.CONNECTION_RESPONSE);
+            if(urlConnection.getResponseCode() == 200) {
+                return MessageEnvelope.parseFromString(IOUtils.toString(urlConnection.getInputStream(), Charset.forName("utf8")), IndyMessageTypes.CONNECTION_RESPONSE);
+            } else if(urlConnection.getResponseCode() == 403) {
+                throw new AccessDeniedException("Access denied for student " + username);
+            } else {
+                throw new Exception();
+            }
         }
         catch (IOException e) {
             Log.e("STUDYBITS", "Exception when logging in" + e.getMessage());

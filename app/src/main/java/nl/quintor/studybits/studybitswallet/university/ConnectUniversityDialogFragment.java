@@ -15,6 +15,7 @@ import nl.quintor.studybits.studybitswallet.R;
 public class ConnectUniversityDialogFragment extends DialogFragment {
     ConnectDialogListener connectDialogListener;
     private EditText usernameEditText;
+    private EditText passwordEditText;
 
     private String name;
 
@@ -36,6 +37,11 @@ public class ConnectUniversityDialogFragment extends DialogFragment {
 
     public String getUsernameText() {
         return usernameEditText.getText().toString();
+    }
+
+
+    public String getPasswordText() {
+        return passwordEditText.getText().toString();
     }
 
     @Override
@@ -63,6 +69,7 @@ public class ConnectUniversityDialogFragment extends DialogFragment {
 
         universityText.setText(name);
         usernameEditText = view.findViewById(R.id.student_id_text);
+        passwordEditText = view.findViewById(R.id.password_text);
         return builder.create();
     }
 
