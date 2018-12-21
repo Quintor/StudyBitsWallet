@@ -91,7 +91,7 @@ public class ScenarioTest {
                 .perform(typeText("12345678"));
 
         // Enter password
-        onView(withId(R.id.student_id_text))
+        onView(withId(R.id.password_text))
                 .check(matches(isDisplayed()))
                 .perform(typeText("test1234"));
 
