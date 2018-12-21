@@ -36,6 +36,7 @@ import nl.quintor.studybits.indy.wrapper.message.IndyMessageTypes;
 import nl.quintor.studybits.indy.wrapper.message.MessageEnvelope;
 import nl.quintor.studybits.indy.wrapper.message.MessageEnvelopeCodec;
 import nl.quintor.studybits.indy.wrapper.util.AsyncUtil;
+import nl.quintor.studybits.studybitswallet.credential.CredentialOrOffer;
 import nl.quintor.studybits.studybitswallet.exchangeposition.AuthcryptableExchangePositions;
 import nl.quintor.studybits.studybitswallet.exchangeposition.ExchangePosition;
 import nl.quintor.studybits.studybitswallet.room.AppDatabase;
@@ -52,43 +53,42 @@ public class IndyClient {
         this.appDatabase = appDatabase;
     }
 
-    public void acceptCredentialOffer(LifecycleOwner lifecycleOwner, CredentialOffer credentialOffer, CompletableFuture<Void> returnValue) {
+    public void acceptCredentialOffer(LifecycleOwner lifecycleOwner, CredentialOrOffer credentialOrOffer, CompletableFuture<Void> returnValue) {
         try {
             Log.d("STUDYBITS", "Accepting credential offer");
             Prover studentProver = new Prover(studentWallet, TestConfiguration.STUDENT_SECRET_NAME);
 
-            CredentialRequest credentialRequest = studentProver.createCredentialRequest(credentialOffer).get();
-            MessageEnvelope credentialRequestEnvelope = studentCodec.encryptMessage(credentialRequest, IndyMessageTypes.CREDENTIAL_REQUEST).get();
+            CredentialRequest credentialRequest = studentProver.createCredentialRequest(credentialOrOffer.getTheirDid(), credentialOrOffer.getCredentialOffer()).get();
+            MessageEnvelope credentialRequestEnvelope = studentCodec.encryptMessage(credentialRequest, IndyMessageTypes.CREDENTIAL_REQUEST, credentialOrOffer.getTheirDid()).get();
 
-            appDatabase.universityDao().getByDid(credentialOffer.getTheirDid()).observe(lifecycleOwner,
-                    university -> {
-                        if (returnValue.isDone()) {
-                            return;
-                        }
-                        try {
-                            MessageEnvelope<CredentialWithRequest> credentialEnvelope = new AgentClient(university.getEndpoint()).postAndReturnMessage(credentialRequestEnvelope, IndyMessageTypes.CREDENTIAL);
+            University university = credentialOrOffer.getUniversity();
 
-                            CredentialWithRequest credentialWithRequest = studentCodec.decryptMessage(credentialEnvelope).get();
+            if (returnValue.isDone()) {
+                return;
+            }
+            try {
+                MessageEnvelope<CredentialWithRequest> credentialEnvelope = new AgentClient(university, studentCodec).postAndReturnMessage(credentialRequestEnvelope, IndyMessageTypes.CREDENTIAL);
 
-                            studentProver.storeCredential(credentialWithRequest).get();
+                CredentialWithRequest credentialWithRequest = studentCodec.decryptMessage(credentialEnvelope).get();
 
-                            Credential credential = credentialWithRequest.getCredential();
+                studentProver.storeCredential(credentialWithRequest).get();
 
-                            university.setCredDefId(credential.getCredDefId());
+                Credential credential = credentialWithRequest.getCredential();
 
-                            new AppDatabase.AsyncDatabaseTask(() -> appDatabase.universityDao().insertUniversities(university),
-                                    new AtomicInteger(1), () -> {
-                                Log.d("STUDYBITS", "Accepted credential offer");
-                                returnValue.complete(null);
-                            }).execute();
+                university.setCredDefId(credential.getCredDefId());
+
+                new AppDatabase.AsyncDatabaseTask(() -> appDatabase.universityDao().insertUniversities(university),
+                        new AtomicInteger(1), () -> {
+                    Log.d("STUDYBITS", "Accepted credential offer");
+                    returnValue.complete(null);
+                }).execute();
 
 
-                        }
-                        catch (Exception e) {
-                            Log.e("STUDYBITS", "Error while accepting credential offer " + e.getMessage());
-                            returnValue.completeExceptionally(e);
-                        }
-                    });
+            }
+            catch (Exception e) {
+                Log.e("STUDYBITS", "Error while accepting credential offer " + e.getMessage());
+                returnValue.completeExceptionally(e);
+            }
         }
         catch (Exception e) {
             Log.e("STUDYBITS", "Exception when accepting credential offer" + e.getMessage());
@@ -105,16 +105,16 @@ public class IndyClient {
 
         Proof proof = prover.fulfillProofRequest(proofRequest, values).get();
 
-        return studentCodec.encryptMessage(proof, IndyMessageTypes.PROOF).get();
+        return studentCodec.encryptMessage(proof, IndyMessageTypes.PROOF, exchangePosition.getTheirDid()).get();
     }
 
     @NonNull
-    public University connect(String endpoint, String uniName, String username, String uniVerinymDid, AgentClient agentClient) throws InterruptedException, ExecutionException, IndyException, IOException {
-        ConnectionRequest connectionRequest = studentWallet.createConnectionRequest(uniVerinymDid).get();
+    public University connect(String endpoint, String uniName, String username, String password, String uniVerinymDid) throws Exception {
+        ConnectionRequest connectionRequest = studentWallet.createConnectionRequest().get();
 
-        MessageEnvelope<ConnectionRequest> connectionResponseEnvelope = studentCodec.encryptMessage(connectionRequest, IndyMessageTypes.CONNECTION_REQUEST).get();
+        MessageEnvelope<ConnectionRequest> connectionResponseEnvelope = studentCodec.encryptMessage(connectionRequest, IndyMessageTypes.CONNECTION_REQUEST, uniVerinymDid).get();
 
-        MessageEnvelope<ConnectionResponse> connectionResponseMessageEnvelope = agentClient.login(username, connectionResponseEnvelope);
+        MessageEnvelope<ConnectionResponse> connectionResponseMessageEnvelope = AgentClient.login(endpoint, username, password, connectionResponseEnvelope);
 
         ConnectionResponse connectionResponse = studentCodec.decryptMessage(connectionResponseMessageEnvelope).get();
 

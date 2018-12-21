@@ -85,10 +85,15 @@ public class ScenarioTest {
 
         universityActivityRule.launchActivity(intent);
 
-        // Enter text
+        // Enter studentID
         onView(withId(R.id.student_id_text))
                 .check(matches(isDisplayed()))
                 .perform(typeText("12345678"));
+
+        // Enter password
+        onView(withId(R.id.password_text))
+                .check(matches(isDisplayed()))
+                .perform(typeText("test1234"));
 
         // Click connect
         onView(withText(R.string.connect))

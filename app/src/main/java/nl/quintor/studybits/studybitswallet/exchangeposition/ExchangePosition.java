@@ -43,6 +43,8 @@ public class ExchangePosition {
         return university;
     }
 
+    public String getTheirDid() { return university.getTheirDid(); }
+
     public void setUniversity(University university) {
         this.university = university;
     }

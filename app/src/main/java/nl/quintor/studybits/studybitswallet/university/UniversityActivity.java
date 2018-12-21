@@ -78,13 +78,14 @@ public class UniversityActivity extends WalletActivity {
 
             dialogFragment.setConnectDialogListener(() -> {
                 String username = dialogFragment.getUsernameText();
+                String password = dialogFragment.getPasswordText();
                 Log.d("STUDYBITS", "Logging in with endpoint " + endpoint + " and username " + username);
-                AgentClient agentClient = new AgentClient(endpoint);
+
                 IndyClient indyClient = new IndyClient(studentWallet, AppDatabase.getInstance(getApplicationContext()));
 
 
                 try {
-                    University university = indyClient.connect(endpoint, name, username, did, agentClient);
+                    University university = indyClient.connect(endpoint, name, username, password, did);
 
                     Snackbar.make(activity.getWindow().getDecorView(), "Connected to " + university.getName() + "!", Snackbar.LENGTH_SHORT).show();
                 } catch (Exception e) {

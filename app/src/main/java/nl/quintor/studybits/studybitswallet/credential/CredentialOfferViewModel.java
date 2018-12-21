@@ -77,12 +77,13 @@ public class CredentialOfferViewModel extends AndroidViewModel {
     }
 
     private List<CredentialOrOffer> getCredentialOrOffers(MessageEnvelopeCodec codec, University university) throws IOException, InterruptedException, ExecutionException, IndyException {
-        List<CredentialOffer> offersForUni = new AgentClient(university.getEndpoint()).getCredentialOffers(codec);
+
+        List<CredentialOffer> offersForUni = new AgentClient(university, codec).getCredentialOffers();
 
         Log.d("STUDYBITS", "Got " + offersForUni.size() + " message envelopes with offers");
 
         return offersForUni.stream()
-                .map(credentialOffer -> CredentialOrOffer.fromCredentialOffer(university.getName(), credentialOffer))
+                .map(credentialOffer -> CredentialOrOffer.fromCredentialOffer(university, credentialOffer))
                 .collect(Collectors.toList());
     }
 

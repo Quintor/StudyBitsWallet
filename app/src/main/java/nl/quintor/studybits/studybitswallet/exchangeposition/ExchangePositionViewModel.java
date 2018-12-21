@@ -27,7 +27,7 @@ public class ExchangePositionViewModel extends AndroidViewModel {
     public void init(List<University> universities, MessageEnvelopeCodec codec) {
         List<ExchangePosition> newExchangePositions =  universities
                 .stream()
-                .map(AsyncUtil.wrapException(university -> new AgentClient(university.getEndpoint()).getExchangePositions(university, codec)))
+                .map(AsyncUtil.wrapException(university -> new AgentClient(university, codec).getExchangePositions()))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
