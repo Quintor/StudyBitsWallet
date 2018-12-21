@@ -18,6 +18,7 @@ import java.net.CookieManager;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +41,7 @@ import nl.quintor.studybits.indy.wrapper.util.JSONUtil;
 import nl.quintor.studybits.studybitswallet.exchangeposition.AuthcryptableExchangePositions;
 import nl.quintor.studybits.studybitswallet.exchangeposition.ExchangePosition;
 import nl.quintor.studybits.studybitswallet.room.entity.University;
+import android.util.Base64;
 
 import static nl.quintor.studybits.indy.wrapper.message.IndyMessageTypes.*;
 import static nl.quintor.studybits.studybitswallet.exchangeposition.StudyBitsMessageTypes.EXCHANGE_POSITIONS;
@@ -57,20 +59,24 @@ public class AgentClient {
     public static MessageEnvelope<ConnectionResponse> login(String endpoint, String username, String password, MessageEnvelope<ConnectionRequest> envelope) throws Exception {
         try {
             Log.d("STUDYBITS", "Logging in");
-            URL url;
-            if (username == null || "".equals(username)) {
-                url = new URL(endpoint + "/agent/login");
-            }
-            else {
-                url = new URL(endpoint + "/agent/login?student_id=" + username + "&password=" + password);
+            String encoded = "";
+            URL url = new URL(endpoint + "/agent/login");
+            if(!username.isEmpty()) {
+                String credentials = username+":"+password;
+                encoded = Base64.encodeToString(credentials.getBytes(StandardCharsets.UTF_8), 0);
+            } else {
+                String credentials = ":";
+                encoded = Base64.encodeToString(credentials.getBytes(StandardCharsets.UTF_8), 0);
             }
             CookieManager cookieManager = cookieManagers.computeIfAbsent(endpoint, s -> new CookieManager());
             CookieHandler.setDefault(cookieManager);
 
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setRequestProperty("Authorization", "Basic "+encoded);
             urlConnection.setRequestProperty("Accept", "application/json");
             urlConnection.setRequestProperty("Content-Type", "application/json");
             urlConnection.setRequestMethod("POST");
+            urlConnection.setUseCaches(false);
             urlConnection.setDoOutput(true);
             urlConnection.setDoInput(true);
 
