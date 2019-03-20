@@ -1,0 +1,6 @@
+<lint>
+    <issue id="InvalidPackage">
+        <ignore path="**/logback*.jar"/>
+        <ignore path="**/jna*.jar"/>
+    </issue>
+</lint>

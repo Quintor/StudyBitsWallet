@@ -15,6 +15,11 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    lintOptions {
+        lintConfig file("lint.xml")
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -64,7 +69,7 @@ dependencies {
 
     implementation 'net.java.dev.jna:jna:4.4.0'
     implementation 'org.hyperledger:indy:1.6.6'
-    implementation 'nl.quintor:quindy:0.1-SNAPSHOT'
+    implementation 'nl.quintor:quindy:0.1.1'
 
     testImplementation 'junit:junit:4.12'
 
