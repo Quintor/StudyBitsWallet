@@ -21,6 +21,9 @@ allprojects {
         maven {
             url "https://dl.bintray.com/quintor/quintor"
         }
+        maven {
+            url "https://repo.sovrin.org/repository/maven-public"
+        }
         mavenLocal()
         mavenCentral()
         jcenter()
