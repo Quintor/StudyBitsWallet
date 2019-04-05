@@ -1,12 +1,13 @@
 # StudyBitsWallet
 
-Android Wallet application for the StudyBits project.
+Android Wallet application for the StudyBits project. This allows students to receive and prove their credentials.
+
+Works in conjunction with the [StudyBits Agent](https://github.com/Quintor/StudyBits)
 
 ## Building
 
-1. Compile quindy and install in local repository (located at `./Studybits/quindy`) using `mvn install -DskipTests`
-2. Import the project in Android Studio
-
+1. Import the project in Android Studio
+2. Execute the wanted gradle task. (e.g. build)
 
 ## Running
 1. Run the docker compose setup from the university-agent (located at `./StudyBits/`) (injecting your ip)
@@ -16,4 +17,4 @@ Android Wallet application for the StudyBits project.
 
 ## Running tests
 1. Follow the steps above
-2. Run `./gradlew connectedCheck`
+2. Run `./gradlew connectedCheck` (or run the corresponding task in Android Studio)

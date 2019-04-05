@@ -19,7 +19,10 @@ allprojects {
     repositories {
         google()
         maven {
-            url "https://repo.evernym.com/artifactory/libindy-maven-local"
+            url "https://dl.bintray.com/quintor/quintor"
+        }
+        maven {
+            url "https://repo.sovrin.org/repository/maven-public"
         }
         mavenLocal()
         mavenCentral()
