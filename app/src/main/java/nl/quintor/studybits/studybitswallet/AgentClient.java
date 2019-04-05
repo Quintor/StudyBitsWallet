@@ -89,7 +89,7 @@ public class AgentClient {
             if(urlConnection.getResponseCode() == 200) {
                 return MessageEnvelope.parseFromString(IOUtils.toString(urlConnection.getInputStream(), Charset.forName("utf8")), IndyMessageTypes.CONNECTION_RESPONSE);
             } else if(urlConnection.getResponseCode() == 403) {
-                throw new IllegalAccessException("Access denied for student " + username);
+                throw new IllegalAccessException("Access denied for student " + username);git comm
             } else {
                 throw new Exception();
             }
