@@ -24,8 +24,6 @@ android:
     # Image for emulator
     - sys-img-armeabi-v7a-android-24
 
-sudo: required
-
 # Update docker-compose Emulator Management: Create, Start and Wait
 before_script:
   - sudo rm /usr/local/bin/docker-compose
