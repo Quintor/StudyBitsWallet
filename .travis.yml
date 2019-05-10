@@ -1,11 +1,5 @@
 language: android
-dist: xenial
-addons:
-  apt:
-    sources:
-      - docker-xenial
-    packages:
-    - docker-ce
+dist: trusty
 android:
   components:
     - tools
