@@ -6,7 +6,6 @@ addons:
       - docker-xenial
     packages:
     - docker-ce
-    - iproute2
 android:
   components:
     - tools
