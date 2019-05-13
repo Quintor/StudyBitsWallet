@@ -1,4 +1,5 @@
 language: android
+dist: trusty
 android:
   components:
     - tools
@@ -17,14 +18,6 @@ android:
     # Image for emulator
     - sys-img-armeabi-v7a-android-24
 
-addons:
-  apt:
-    packages:
-      - iproute2
-      - docker-ce
-      
-sudo: required
-
 # Update docker-compose Emulator Management: Create, Start and Wait
 before_script:
   - sudo rm /usr/local/bin/docker-compose
@@ -39,7 +32,7 @@ script:
   - docker pull ubuntu:16.04 # Prepulling the image to ensure that network issues happen early on in the build
   - ci/create-emulator.sh
   - ci/travis.sh # Rest of the commands are prefixed with travis_wait, because they might take long. This is a builtin and doesn't work in the script itself
-  - travis_wait docker-compose -f StudyBits/docker-compose.yml up -d --build --force-recreate pool university-agent-rug university-agent-gent
+  - travis_wait docker-compose up -d 
   - sh -c "ps aux --sort -rss | head -20"
   - travis_wait 60 android-wait-for-emulator
   - sh -c "ps aux --sort -rss | head -20"
